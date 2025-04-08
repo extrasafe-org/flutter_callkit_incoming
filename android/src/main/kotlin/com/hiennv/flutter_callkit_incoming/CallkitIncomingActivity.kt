@@ -192,8 +192,11 @@ class CallkitIncomingActivity : Activity() {
             }
             val headers =
                 data?.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
-            getPicassoInstance(this@CallkitIncomingActivity, headers).load(logoUrl)
-                .placeholder(R.drawable.transparent).error(R.drawable.transparent).into(ivLogo)
+            getPicassoInstance(this@CallkitIncomingActivity, headers)
+                .load(logoUrl)
+                .placeholder(R.drawable.transparent)
+                .error(R.drawable.transparent)
+                .into(ivLogo)
         }
 
         val avatarUrl = data?.getString(CallkitConstants.EXTRA_CALLKIT_AVATAR, "")
@@ -201,8 +204,10 @@ class CallkitIncomingActivity : Activity() {
             ivAvatar.visibility = View.VISIBLE
             val headers =
                 data.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
-            getPicassoInstance(this@CallkitIncomingActivity, headers).load(avatarUrl)
-                .placeholder(R.drawable.ic_default_avatar).error(R.drawable.ic_default_avatar)
+            getPicassoInstance(this@CallkitIncomingActivity, headers)
+                .load(avatarUrl)
+                .placeholder(R.drawable.ic_default_avatar)
+                .error(R.drawable.ic_default_avatar)
                 .into(ivAvatar)
         }
 
@@ -253,8 +258,10 @@ class CallkitIncomingActivity : Activity() {
             }
             val headers =
                 data?.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
-            getPicassoInstance(this@CallkitIncomingActivity, headers).load(backgroundUrl)
-                .placeholder(R.drawable.transparent).error(R.drawable.transparent)
+            getPicassoInstance(this@CallkitIncomingActivity, headers)
+                .load(backgroundUrl)
+                .placeholder(R.drawable.transparent)
+                .error(R.drawable.transparent)
                 .into(ivBackground)
         }
     }
