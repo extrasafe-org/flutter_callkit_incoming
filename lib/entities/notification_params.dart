@@ -21,7 +21,6 @@ class NotificationParams {
   final bool? isShowCallback;
   final int? count;
 
-  factory NotificationParams.fromJson(Map<String, dynamic> json) =>
-      _$NotificationParamsFromJson(json);
+  factory NotificationParams.fromJson(Map<String, dynamic> json) => _$NotificationParamsFromJson(json);
   Map<String, dynamic> toJson() => _$NotificationParamsToJson(this);
 }

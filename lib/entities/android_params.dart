@@ -70,8 +70,7 @@ class AndroidParams {
   /// https://developer.android.com/reference/androidx/core/app/Person#isBot()
   final bool? isBot;
 
-  factory AndroidParams.fromJson(Map<String, dynamic> json) =>
-      _$AndroidParamsFromJson(json);
+  factory AndroidParams.fromJson(Map<String, dynamic> json) => _$AndroidParamsFromJson(json);
 
   Map<String, dynamic> toJson() => _$AndroidParamsToJson(this);
 }
