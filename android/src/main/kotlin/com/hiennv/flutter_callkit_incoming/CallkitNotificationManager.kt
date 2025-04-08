@@ -105,7 +105,7 @@ class CallkitNotificationManager(private val context: Context) {
             .setContentIntent(activityPendingIntent)
             .setDeleteIntent(timeoutPendingIntent)
         // we removed the ongoing notification service, so this flag is commented out for now
-        //.setOngoing(true)
+        // .setOngoing(true)
 
         // set call accept button icon
         val callType = data.getInt(CallkitConstants.EXTRA_CALLKIT_TYPE, -1)
@@ -490,7 +490,7 @@ class CallkitNotificationManager(private val context: Context) {
     }
 
     private fun getFlagPendingIntent(): Int {
-        return PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        return PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     }
 
 
