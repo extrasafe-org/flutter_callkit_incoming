@@ -197,11 +197,17 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
             self.silenceEvents = silence
             result("OK")
             break;
-        case "requestNotificationPermission": 
+        // Android only
+        case "requestNotificationPermission":
             result("OK")
             break
-         case "requestFullIntentPermission": 
+        // Android only
+        case "openFullScreenNotificationsSettings":
             result("OK")
+            break
+        // Android only
+        case "canUseFullScreenIntent":
+            result(true)
             break
         case "hideCallkitIncoming":
             result("OK")

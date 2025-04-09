@@ -1,3 +1,8 @@
+## 2.5.3
+
+- added the `canUseFullScreenIntent()` method to determine whether the device can show full screen notifications in the locked state (Android only). You can use this value to determine whether to show dialog and subsequently call `requestFullIntentPermission()` to open the settings activity.
+- renamed the `requestFullIntentPermission()` to `openFullScreenNotificationsSettings()` to better reflect what it does and changed its return type to `Future<void>` from `Future<dynamic>`.
+
 ## 2.5.2
 * Add notification calling for Android `callingNotification`, thank @ebsangam https://github.com/hiennguyen92/flutter_callkit_incoming/pull/662
 * Add `logoUrl` properties (inside android prop) 

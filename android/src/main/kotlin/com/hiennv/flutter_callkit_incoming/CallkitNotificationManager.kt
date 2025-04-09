@@ -524,9 +524,14 @@ class CallkitNotificationManager(private val context: Context) {
         }
     }
 
-    fun requestFullIntentPermission(activity: Activity?) {
-        val canUseFullScreenIntent = getNotificationManager().canUseFullScreenIntent();
-        if (!canUseFullScreenIntent && Build.VERSION.SDK_INT > 33) {
+    fun canUseFullScreenIntent(): Boolean {
+        return getNotificationManager().canUseFullScreenIntent()
+    }
+
+    fun openFullScreenNotificationsSettings(activity: Activity?) {
+        val canUseFullScreenIntent = canUseFullScreenIntent()
+
+        if (!canUseFullScreenIntent && Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             val intent = Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT).apply {
                 data = Uri.fromParts("package", activity?.packageName, null)
             }
