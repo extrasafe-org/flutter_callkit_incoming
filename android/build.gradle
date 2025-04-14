@@ -2,7 +2,9 @@ group 'com.example.flutter_callkit_incoming'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '2.1.10'
+    ext {
+        kotlin_version = '2.1.10'
+    }
     repositories {
         google()
         mavenCentral()
@@ -22,7 +24,7 @@ rootProject.allprojects {
 }
 
 apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
     compileSdk 36
@@ -30,30 +32,27 @@ android {
     if (project.android.hasProperty("namespace")) {
         namespace "com.hiennv.flutter_callkit_incoming"
     }
-    
-    sourceSets {
-        main.java.srcDirs += 'src/main/kotlin'
-    }
+
     defaultConfig {
-        minSdk 26
-        targetSdk 36
+        minSdkVersion 26
+        targetSdkVersion 36
 
         consumerProguardFiles 'consumer-rules.pro'
     }
-}
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
+    namespace 'com.hiennv.flutter_callkit_incoming'
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+    }
+    
+    kotlinOptions {
+        jvmTarget = '21'
     }
 }
 
-kotlin {
-    jvmToolchain(21)
-}
-
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'androidx.core:core-ktx:1.15.0'
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'de.hdodenhof:circleimageview:3.1.0'
