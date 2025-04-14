@@ -278,9 +278,15 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
                     callkitNotificationManager?.requestNotificationPermission(activity, map)
                 }
 
-                "requestFullIntentPermission" -> {
-                    callkitNotificationManager?.requestFullIntentPermission(activity)
+                "canUseFullScreenIntent" -> {
+                    val canUse = callkitNotificationManager?.canUseFullScreenIntent()
+                    result.success(canUse)
                 }
+
+                "openFullScreenNotificationsSettings" -> {
+                    callkitNotificationManager?.openFullScreenNotificationsSettings(activity)
+                }
+
                 // EDIT - clear the incoming notification/ring (after accept/decline/timeout)
                 "hideCallkitIncoming" -> {
                     val data = Data(call.arguments() ?: HashMap())
@@ -288,13 +294,9 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
                     callkitNotificationManager?.clearIncomingNotification(data.toBundle(), false)
                 }
 
-                "endNativeSubsystemOnly" -> {
+                "endNativeSubsystemOnly" -> {}
 
-                }
-
-                "setAudioRoute" -> {
-
-                }
+                "setAudioRoute" -> {}
             }
         } catch (error: Exception) {
             result.error("error", error.message, "")
