@@ -142,7 +142,7 @@ class CallkitSoundPlayerService : Service() {
             return getDefaultRingtoneUri()
         } catch (e: Exception) {
             // If anything fails, try to return the system default ringtone
-            return getDefaultRingtoneUri()
+            return getDefaultRingtoneUri(useSystemDefault = true)
         }
     }
 
