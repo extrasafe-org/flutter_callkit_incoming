@@ -11,6 +11,7 @@ class NotificationParams {
     this.subtitle,
     this.callbackText,
     this.isShowCallback,
+    this.content,
     this.count,
   });
 
@@ -19,6 +20,7 @@ class NotificationParams {
   final String? subtitle;
   final String? callbackText;
   final bool? isShowCallback;
+  final String? content;
   final int? count;
 
   factory NotificationParams.fromJson(Map<String, dynamic> json) => _$NotificationParamsFromJson(json);

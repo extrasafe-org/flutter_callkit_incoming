@@ -108,7 +108,7 @@ class OngoingNotificationService : Service() {
             )
             notificationBuilder.setContentText(
                 data.getString(
-                    CallkitConstants.EXTRA_CALLKIT_HANDLE, ""
+                    CallkitConstants.EXTRA_CALLKIT_CALLING_CONTENT, ""
                 )
             )
             val avatarUrl = getAvatarUrl(data)
