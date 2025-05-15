@@ -36,6 +36,17 @@ class OngoingNotificationService : Service() {
 
     @SuppressLint("MissingPermission")
     private fun showOngoingCallNotification(data: Bundle) {
+        val cameraPermission =
+            PermissionChecker.checkSelfPermission(this, Manifest.permission.CAMERA)
+        val microphonePermission =
+            PermissionChecker.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+        val permissionGrantedFlag = PermissionChecker.PERMISSION_GRANTED
+
+        // Without neither camera nor audio permissions, the service cannot run in the foreground
+        if (cameraPermission != permissionGrantedFlag && microphonePermission != permissionGrantedFlag) {
+            return stopSelf()
+        }
+
         val onGoingNotificationId = data.getInt(
             CallkitConstants.EXTRA_CALLKIT_MISSED_CALL_ID,
             data.getString(CallkitConstants.EXTRA_CALLKIT_ID, "callkit_incoming").hashCode() + 999
