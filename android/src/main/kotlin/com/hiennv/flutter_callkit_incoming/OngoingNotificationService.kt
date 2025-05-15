@@ -32,8 +32,11 @@ class OngoingNotificationService : Service() {
     private var notificationViews: RemoteViews? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        showOngoingCallNotification(intent?.extras!!)
-        return START_STICKY
+        if (intent != null && intent.extras != null) {
+            showOngoingCallNotification(intent.extras!!)
+        }
+
+        return START_REDELIVER_INTENT
     }
 
     @SuppressLint("MissingPermission")
