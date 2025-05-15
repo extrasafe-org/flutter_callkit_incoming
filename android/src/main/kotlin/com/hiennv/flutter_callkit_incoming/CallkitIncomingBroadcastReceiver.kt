@@ -81,10 +81,12 @@ class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
         val callkitNotificationManager = CallkitNotificationManager(context)
         val action = intent.action ?: return
         val data = intent.extras?.getBundle(CallkitConstants.EXTRA_CALLKIT_INCOMING_DATA) ?: return
+        val packageName = context.packageName
+
         when (action) {
-            "${context.packageName}.${CallkitConstants.ACTION_CALL_INCOMING}" -> {
+            "$packageName.${CallkitConstants.ACTION_CALL_INCOMING}" -> {
                 try {
-                    callkitNotificationManager.createNotificationChanel(data)
+                    callkitNotificationManager.createNotificationChannel(data)
                     callkitNotificationManager.showIncomingNotification(data)
                     sendEventFlutter(CallkitConstants.ACTION_CALL_INCOMING, data)
                     addCall(context, Data.fromBundle(data))
@@ -99,15 +101,15 @@ class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
                 }
             }
 
-            "${context.packageName}.${CallkitConstants.ACTION_CALL_START}" -> {
+            "$packageName.${CallkitConstants.ACTION_CALL_START}" -> {
                 try {
-                    callkitNotificationManager.createNotificationChanel(data)
+                    callkitNotificationManager.createNotificationChannel(data)
                     sendEventFlutter(CallkitConstants.ACTION_CALL_START, data)
                     if (data.getBoolean(CallkitConstants.EXTRA_CALLKIT_CALLING_SHOW, true)) {
-//                        val onGoingNotificationIntent =
-//                            Intent(context, OngoingNotificationService::class.java);
-//                        onGoingNotificationIntent.putExtras(data)
-//                        context.startService(onGoingNotificationIntent)
+                        val onGoingNotificationIntent =
+                            Intent(context, OngoingNotificationService::class.java);
+                        onGoingNotificationIntent.putExtras(data)
+                        context.startService(onGoingNotificationIntent)
                     }
                     addCall(context, Data.fromBundle(data), true)
                 } catch (error: Exception) {
@@ -115,16 +117,17 @@ class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
                 }
             }
 
-            "${context.packageName}.${CallkitConstants.ACTION_CALL_ACCEPT}" -> {
+            "$packageName.${CallkitConstants.ACTION_CALL_ACCEPT}" -> {
                 try {
                     sendEventFlutter(CallkitConstants.ACTION_CALL_ACCEPT, data)
                     context.stopService(Intent(context, CallkitSoundPlayerService::class.java))
                     callkitNotificationManager.clearIncomingNotification(data, true)
                     // show ongoing call when call is accepted
                     if (data.getBoolean(CallkitConstants.EXTRA_CALLKIT_CALLING_SHOW, true)) {
-//                        val onGoingNotificationIntent = Intent(context, OngoingNotificationService::class.java);
-//                        onGoingNotificationIntent.putExtras(data)
-//                        context.startService(onGoingNotificationIntent)
+                        val onGoingNotificationIntent =
+                            Intent(context, OngoingNotificationService::class.java);
+                        onGoingNotificationIntent.putExtras(data)
+                        context.startService(onGoingNotificationIntent)
                     }
                     addCall(context, Data.fromBundle(data), true)
                 } catch (error: Exception) {
@@ -132,7 +135,7 @@ class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
                 }
             }
 
-            "${context.packageName}.${CallkitConstants.ACTION_CALL_DECLINE}" -> {
+            "$packageName.${CallkitConstants.ACTION_CALL_DECLINE}" -> {
                 try {
                     sendEventFlutter(CallkitConstants.ACTION_CALL_DECLINE, data)
                     context.stopService(Intent(context, CallkitSoundPlayerService::class.java))
@@ -143,10 +146,10 @@ class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
                 }
             }
 
-            "${context.packageName}.${CallkitConstants.ACTION_CALL_ENDED}" -> {
+            "$packageName.${CallkitConstants.ACTION_CALL_ENDED}" -> {
                 try {
                     sendEventFlutter(CallkitConstants.ACTION_CALL_ENDED, data)
-//                    context.stopService(Intent(context, OngoingNotificationService::class.java))
+                    context.stopService(Intent(context, OngoingNotificationService::class.java))
                     context.stopService(Intent(context, CallkitSoundPlayerService::class.java))
                     callkitNotificationManager.clearIncomingNotification(data, false)
                     removeCall(context, Data.fromBundle(data))
@@ -155,7 +158,7 @@ class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
                 }
             }
 
-            "${context.packageName}.${CallkitConstants.ACTION_CALL_TIMEOUT}" -> {
+            "$packageName.${CallkitConstants.ACTION_CALL_TIMEOUT}" -> {
                 try {
                     sendEventFlutter(CallkitConstants.ACTION_CALL_TIMEOUT, data)
                     context.stopService(Intent(context, CallkitSoundPlayerService::class.java))
@@ -168,14 +171,10 @@ class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
                 }
             }
 
-            "${context.packageName}.${CallkitConstants.ACTION_CALL_CALLBACK}" -> {
+            "$packageName.${CallkitConstants.ACTION_CALL_CALLBACK}" -> {
                 try {
                     callkitNotificationManager.clearMissCallNotification(data)
                     sendEventFlutter(CallkitConstants.ACTION_CALL_CALLBACK, data)
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-                        val closeNotificationPanel = Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS)
-                        context.sendBroadcast(closeNotificationPanel)
-                    }
                 } catch (error: Exception) {
                     Log.e(TAG, null, error)
                 }
@@ -226,6 +225,7 @@ class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
             "id" to data.getInt(CallkitConstants.EXTRA_CALLKIT_CALLING_ID),
             "showNotification" to data.getBoolean(CallkitConstants.EXTRA_CALLKIT_CALLING_SHOW),
             "subtitle" to data.getString(CallkitConstants.EXTRA_CALLKIT_CALLING_SUBTITLE),
+            "content" to data.getString(CallkitConstants.EXTRA_CALLKIT_CALLING_CONTENT),
             "callbackText" to data.getString(CallkitConstants.EXTRA_CALLKIT_CALLING_HANG_UP_TEXT),
             "isShowCallback" to data.getBoolean(CallkitConstants.EXTRA_CALLKIT_CALLING_HANG_UP_SHOW),
         )
