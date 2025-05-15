@@ -163,8 +163,6 @@ class OngoingNotificationService : Service() {
         val notification = notificationBuilder.build()
         val typeCall = data.getInt(CallkitConstants.EXTRA_CALLKIT_TYPE, -1)
 
-        // we do not have the correct permissions for starting an ongoing notifications service
-        // so we disable its start here
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val serviceType = if (typeCall > 0) {
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
