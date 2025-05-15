@@ -62,7 +62,10 @@ class OngoingNotificationService : Service() {
             notificationBuilder.setCategory(Notification.CATEGORY_CALL)
         }
         val textCalling = data.getString(CallkitConstants.EXTRA_CALLKIT_CALLING_SUBTITLE, "")
-        notificationBuilder.setSubText(if (TextUtils.isEmpty(textCalling)) getString(R.string.text_calling) else textCalling)
+        if (textCalling.isNotBlank()) {
+            notificationBuilder.setSubText(textCalling)
+        }
+
         notificationBuilder.setSmallIcon(R.drawable.ic_accept)
         val isCustomNotification =
             data.getBoolean(CallkitConstants.EXTRA_CALLKIT_IS_CUSTOM_NOTIFICATION, false)
@@ -72,15 +75,7 @@ class OngoingNotificationService : Service() {
             notificationViews?.setTextViewText(
                 R.id.tvNameCaller, data.getString(CallkitConstants.EXTRA_CALLKIT_NAME_CALLER, "")
             )
-            val isShowCallID =
-                data.getBoolean(CallkitConstants.EXTRA_CALLKIT_IS_SHOW_CALL_ID, false)
-            if (isShowCallID) {
-                notificationViews?.setTextViewText(
-                    R.id.tvNumber, String.format(
-                        " • %1s", data.getString(CallkitConstants.EXTRA_CALLKIT_HANDLE, "")
-                    )
-                )
-            }
+
             notificationViews?.setOnClickPendingIntent(
                 R.id.llHangup, getHangupPendingIntent(onGoingNotificationId, data)
             )
@@ -95,15 +90,15 @@ class OngoingNotificationService : Service() {
                 R.id.tvHangUp,
                 if (TextUtils.isEmpty(textHangup)) getString(R.string.text_hang_up) else textHangup
             )
-            val textTapOpen =
-                data.getString(CallkitConstants.EXTRA_CALLKIT_CALLING_TAP_OPEN_TEXT, "")
+            val notificationContent =
+                data.getString(CallkitConstants.EXTRA_CALLKIT_CALLING_CONTENT, "")
             notificationViews?.setTextViewText(
                 R.id.tvTapOpen,
-                if (TextUtils.isEmpty(textTapOpen)) getString(R.string.text_tab_open) else textTapOpen
+                if (TextUtils.isEmpty(notificationContent)) getString(R.string.text_tap_open) else notificationContent
             )
 
-            val avatarUrl = data.getString(CallkitConstants.EXTRA_CALLKIT_AVATAR, "")
-            if (avatarUrl != null && avatarUrl.isNotEmpty()) {
+            val avatarUrl = getAvatarUrl(data)
+            if (avatarUrl != null) {
                 val headers =
                     data.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
 
