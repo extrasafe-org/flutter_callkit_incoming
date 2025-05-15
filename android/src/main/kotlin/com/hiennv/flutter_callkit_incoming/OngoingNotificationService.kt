@@ -97,7 +97,7 @@ class OngoingNotificationService : Service() {
                 data.getString(CallkitConstants.EXTRA_CALLKIT_CALLING_CONTENT, "")
             notificationViews?.setTextViewText(
                 R.id.tvTapOpen,
-                if (TextUtils.isEmpty(notificationContent)) getString(R.string.text_tap_open) else notificationContent
+                if (TextUtils.isEmpty(notificationContent)) getString(R.string.text_tab_open) else notificationContent
             )
 
             val avatarUrl = getAvatarUrl(data)
