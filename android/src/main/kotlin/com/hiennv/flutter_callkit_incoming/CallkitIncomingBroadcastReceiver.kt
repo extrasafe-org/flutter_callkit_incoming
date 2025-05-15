@@ -1,82 +1,120 @@
 package com.hiennv.flutter_callkit_incoming
 
-import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 
 class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
 
     companion object {
-        private const val TAG = "CallkitIncomingReceiver"
+        private const val TAG = "CallkitIncomingBroadcastReceiver"
+        private const val CLASS_NAME =
+            "com.hiennv.flutter_callkit_incoming.CallkitIncomingBroadcastReceiver"
         var silenceEvents = false
 
         fun getIntent(context: Context, action: String, data: Bundle?) =
-            Intent(context, CallkitIncomingBroadcastReceiver::class.java).apply {
-                this.action = "${context.packageName}.${action}"
+            Intent().apply {
+                val packageName = context.packageName
+
+                setClassName(packageName, CLASS_NAME)
+                this.action = "$packageName.$action"
                 putExtra(CallkitConstants.EXTRA_CALLKIT_INCOMING_DATA, data)
+                `package` = packageName
             }
 
         fun getIntentIncoming(context: Context, data: Bundle?) =
-            Intent(context, CallkitIncomingBroadcastReceiver::class.java).apply {
-                action = "${context.packageName}.${CallkitConstants.ACTION_CALL_INCOMING}"
+            Intent().apply {
+                val packageName = context.packageName
+
+                setClassName(packageName, CLASS_NAME)
+                action = "$packageName.${CallkitConstants.ACTION_CALL_INCOMING}"
                 putExtra(CallkitConstants.EXTRA_CALLKIT_INCOMING_DATA, data)
+                `package` = packageName
             }
 
         fun getIntentStart(context: Context, data: Bundle?) =
-            Intent(context, CallkitIncomingBroadcastReceiver::class.java).apply {
-                action = "${context.packageName}.${CallkitConstants.ACTION_CALL_START}"
+            Intent().apply {
+                val packageName = context.packageName
+
+                setClassName(packageName, CLASS_NAME)
+                action = "$packageName.${CallkitConstants.ACTION_CALL_START}"
                 putExtra(CallkitConstants.EXTRA_CALLKIT_INCOMING_DATA, data)
+                `package` = packageName
             }
 
         fun getIntentAccept(context: Context, data: Bundle?) =
-            Intent(context, CallkitIncomingBroadcastReceiver::class.java).apply {
-                action = "${context.packageName}.${CallkitConstants.ACTION_CALL_ACCEPT}"
+            Intent().apply {
+                val packageName = context.packageName
+
+                setClassName(packageName, CLASS_NAME)
+                action = "$packageName.${CallkitConstants.ACTION_CALL_ACCEPT}"
                 putExtra(CallkitConstants.EXTRA_CALLKIT_INCOMING_DATA, data)
+                `package` = packageName
             }
 
         fun getIntentDecline(context: Context, data: Bundle?) =
-            Intent(context, CallkitIncomingBroadcastReceiver::class.java).apply {
-                action = "${context.packageName}.${CallkitConstants.ACTION_CALL_DECLINE}"
+            Intent().apply {
+                val packageName = context.packageName
+
+                setClassName(packageName, CLASS_NAME)
+                action = "$packageName.${CallkitConstants.ACTION_CALL_DECLINE}"
                 putExtra(CallkitConstants.EXTRA_CALLKIT_INCOMING_DATA, data)
+                `package` = packageName
             }
 
         fun getIntentEnded(context: Context, data: Bundle?) =
-            Intent(context, CallkitIncomingBroadcastReceiver::class.java).apply {
-                action = "${context.packageName}.${CallkitConstants.ACTION_CALL_ENDED}"
+            Intent().apply {
+                val packageName = context.packageName
+
+                setClassName(packageName, CLASS_NAME)
+                action = "$packageName.${CallkitConstants.ACTION_CALL_ENDED}"
                 putExtra(CallkitConstants.EXTRA_CALLKIT_INCOMING_DATA, data)
+                `package` = packageName
             }
 
         fun getIntentTimeout(context: Context, data: Bundle?) =
-            Intent(context, CallkitIncomingBroadcastReceiver::class.java).apply {
-                action = "${context.packageName}.${CallkitConstants.ACTION_CALL_TIMEOUT}"
+            Intent().apply {
+                val packageName = context.packageName
+
+                setClassName(packageName, CLASS_NAME)
+                action = "$packageName.${CallkitConstants.ACTION_CALL_TIMEOUT}"
                 putExtra(CallkitConstants.EXTRA_CALLKIT_INCOMING_DATA, data)
+                `package` = packageName
             }
 
         fun getIntentCallback(context: Context, data: Bundle?) =
-            Intent(context, CallkitIncomingBroadcastReceiver::class.java).apply {
-                action = "${context.packageName}.${CallkitConstants.ACTION_CALL_CALLBACK}"
+            Intent().apply {
+                val packageName = context.packageName
+
+                setClassName(packageName, CLASS_NAME)
+                action = "$packageName.${CallkitConstants.ACTION_CALL_CALLBACK}"
                 putExtra(CallkitConstants.EXTRA_CALLKIT_INCOMING_DATA, data)
+                `package` = packageName
             }
 
         fun getIntentHeldByCell(context: Context, data: Bundle?) =
-            Intent(context, CallkitIncomingBroadcastReceiver::class.java).apply {
-                action = "${context.packageName}.${CallkitConstants.ACTION_CALL_HELD}"
+            Intent().apply {
+                val packageName = context.packageName
+
+                setClassName(packageName, CLASS_NAME)
+                action = "$packageName.${CallkitConstants.ACTION_CALL_HELD}"
                 putExtra(CallkitConstants.EXTRA_CALLKIT_INCOMING_DATA, data)
+                `package` = packageName
             }
 
         fun getIntentUnHeldByCell(context: Context, data: Bundle?) =
-            Intent(context, CallkitIncomingBroadcastReceiver::class.java).apply {
-                action = "${context.packageName}.${CallkitConstants.ACTION_CALL_UNHELD}"
+            Intent().apply {
+                val packageName = context.packageName
+
+                setClassName(packageName, CLASS_NAME)
+                action = "$packageName.${CallkitConstants.ACTION_CALL_UNHELD}"
                 putExtra(CallkitConstants.EXTRA_CALLKIT_INCOMING_DATA, data)
+                `package` = packageName
             }
     }
 
-
-    @SuppressLint("MissingPermission")
     override fun onReceive(context: Context, intent: Intent) {
         val callkitNotificationManager = CallkitNotificationManager(context)
         val action = intent.action ?: return
