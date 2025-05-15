@@ -461,7 +461,7 @@ class CallkitNotificationManager(private val context: Context) {
             if (startsWithHttp || startsWithHttps) {
                 bundleAvatarUrl
             } else {
-                "file:///$bundleAvatarUrl"
+                "file:///android_asset/flutter_assets/$bundleAvatarUrl"
             }
         } else {
             null

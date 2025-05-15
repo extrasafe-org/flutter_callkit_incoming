@@ -358,7 +358,7 @@ class CallkitIncomingActivity : Activity() {
         return if (startsWithHttp || startsWithHttps) {
             url
         } else {
-            "file:///$url"
+            "file:///android_asset/flutter_assets/$url"
         }
     }
 
