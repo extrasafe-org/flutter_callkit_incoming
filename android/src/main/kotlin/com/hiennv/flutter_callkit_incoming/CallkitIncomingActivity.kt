@@ -184,16 +184,14 @@ class CallkitIncomingActivity : Activity() {
 
         val isShowLogo = data?.getBoolean(CallkitConstants.EXTRA_CALLKIT_IS_SHOW_LOGO, false)
         ivLogo.visibility = if (isShowLogo == true) View.VISIBLE else View.INVISIBLE
-        var logoUrl = data?.getString(CallkitConstants.EXTRA_CALLKIT_LOGO_URL, "")
+        val logoUrl = data?.getString(CallkitConstants.EXTRA_CALLKIT_LOGO_URL, "")
 
         if (!logoUrl.isNullOrEmpty()) {
-            if (!logoUrl.startsWith("http://", true) && !logoUrl.startsWith("https://", true)) {
-                logoUrl = String.format("file:///android_asset/flutter_assets/%s", logoUrl)
-            }
+            val url = getAssetUrl(logoUrl)
             val headers =
-                data?.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
+                data.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
             getPicassoInstance(this@CallkitIncomingActivity, headers)
-                .load(logoUrl)
+                .load(url)
                 .placeholder(R.drawable.transparent)
                 .error(R.drawable.transparent)
                 .into(ivLogo)
@@ -201,11 +199,12 @@ class CallkitIncomingActivity : Activity() {
 
         val avatarUrl = data?.getString(CallkitConstants.EXTRA_CALLKIT_AVATAR, "")
         if (!avatarUrl.isNullOrEmpty()) {
+            val url = getAssetUrl(avatarUrl)
             ivAvatar.visibility = View.VISIBLE
             val headers =
                 data.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
             getPicassoInstance(this@CallkitIncomingActivity, headers)
-                .load(avatarUrl)
+                .load(url)
                 .placeholder(R.drawable.ic_default_avatar)
                 .error(R.drawable.ic_default_avatar)
                 .into(ivAvatar)
@@ -350,6 +349,17 @@ class CallkitIncomingActivity : Activity() {
 
     private fun finishTask() {
         finishAndRemoveTask()
+    }
+
+    private fun getAssetUrl(url: String): String {
+        val startsWithHttp = url.startsWith("http://", true)
+        val startsWithHttps = url.startsWith("https://", true)
+
+        return if (startsWithHttp || startsWithHttps) {
+            url
+        } else {
+            "file:///$url"
+        }
     }
 
     private fun getPicassoInstance(context: Context, headers: HashMap<String, Any?>): Picasso {

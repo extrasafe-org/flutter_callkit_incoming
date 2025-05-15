@@ -111,8 +111,8 @@ class OngoingNotificationService : Service() {
                     CallkitConstants.EXTRA_CALLKIT_HANDLE, ""
                 )
             )
-            val avatarUrl = data.getString(CallkitConstants.EXTRA_CALLKIT_AVATAR, "")
-            if (avatarUrl != null && avatarUrl.isNotEmpty()) {
+            val avatarUrl = getAvatarUrl(data)
+            if (avatarUrl != null) {
                 val headers =
                     data.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
 
@@ -219,6 +219,23 @@ class OngoingNotificationService : Service() {
             override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {}
 
             override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
+        }
+    }
+
+    private fun getAvatarUrl(bundle: Bundle): String? {
+        val bundleAvatarUrl = bundle.getString(CallkitConstants.EXTRA_CALLKIT_AVATAR, "")
+
+        return if (bundleAvatarUrl.isNotBlank()) {
+            val startsWithHttp = bundleAvatarUrl.startsWith("http://", true)
+            val startsWithHttps = bundleAvatarUrl.startsWith("https://", true)
+
+            if (startsWithHttp || startsWithHttps) {
+                bundleAvatarUrl
+            } else {
+                "file:///$bundleAvatarUrl"
+            }
+        } else {
+            null
         }
     }
 
