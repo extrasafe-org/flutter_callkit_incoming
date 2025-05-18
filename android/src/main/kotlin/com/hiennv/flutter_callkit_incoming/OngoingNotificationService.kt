@@ -1,7 +1,6 @@
 package com.hiennv.flutter_callkit_incoming
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -39,7 +38,6 @@ class OngoingNotificationService : Service() {
         return START_REDELIVER_INTENT
     }
 
-    @SuppressLint("MissingPermission")
     private fun showOngoingCallNotification(data: Bundle) {
         val cameraPermission =
             PermissionChecker.checkSelfPermission(this, Manifest.permission.CAMERA)
@@ -213,10 +211,17 @@ class OngoingNotificationService : Service() {
         return Picasso.Builder(context).downloader(OkHttp3Downloader(client)).build()
     }
 
-    @SuppressLint("MissingPermission")
     private fun createAvatarTargetCustom(notificationId: Int): Target {
         return object : Target {
             override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    val canPostNotifications = PermissionChecker.checkSelfPermission(
+                        this@OngoingNotificationService, Manifest.permission.POST_NOTIFICATIONS
+                    )
+
+                    if (canPostNotifications != PermissionChecker.PERMISSION_GRANTED) return
+                }
+
                 notificationViews?.setImageViewBitmap(R.id.ivAvatar, bitmap)
                 notificationViews?.setViewVisibility(R.id.ivAvatar, View.VISIBLE)
                 getNotificationManager().notify(notificationId, notificationBuilder.build())
@@ -230,10 +235,17 @@ class OngoingNotificationService : Service() {
         }
     }
 
-    @SuppressLint("MissingPermission")
     private fun createAvatarTargetDefault(notificationId: Int): Target {
         return object : Target {
             override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    val canPostNotifications = PermissionChecker.checkSelfPermission(
+                        this@OngoingNotificationService, Manifest.permission.POST_NOTIFICATIONS
+                    )
+
+                    if (canPostNotifications != PermissionChecker.PERMISSION_GRANTED) return
+                }
+
                 notificationBuilder.setLargeIcon(bitmap)
                 getNotificationManager().notify(notificationId, notificationBuilder.build())
             }
