@@ -159,19 +159,22 @@ class OngoingNotificationService : Service() {
         }
         notificationBuilder.setOngoing(true)
         val notification = notificationBuilder.build()
-        val typeCall = data.getInt(CallkitConstants.EXTRA_CALLKIT_TYPE, -1)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val serviceType = if (typeCall > 0) {
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
-            } else {
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+            // if the camera permission is granted add it
+            if (cameraPermission == permissionGrantedFlag) {
+                startForeground(
+                    onGoingNotificationId,
+                    notification,
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA,
+                )
             }
 
+            // always request the microphone service permission to be able to record audio while in background
             startForeground(
                 onGoingNotificationId,
                 notification,
-                serviceType,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE,
             )
         } else {
             startForeground(onGoingNotificationId, notification)
