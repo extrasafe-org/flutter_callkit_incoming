@@ -147,7 +147,7 @@ class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
                         val onGoingNotificationIntent =
                             Intent(context, OngoingNotificationService::class.java);
                         onGoingNotificationIntent.putExtras(data)
-                        context.startService(onGoingNotificationIntent)
+                        context.startForegroundService(onGoingNotificationIntent)
                     }
                     addCall(context, Data.fromBundle(data), true)
                 } catch (error: Exception) {
@@ -165,7 +165,7 @@ class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
                         val onGoingNotificationIntent =
                             Intent(context, OngoingNotificationService::class.java);
                         onGoingNotificationIntent.putExtras(data)
-                        context.startService(onGoingNotificationIntent)
+                        context.startForegroundService(onGoingNotificationIntent)
                     }
                     addCall(context, Data.fromBundle(data), true)
                 } catch (error: Exception) {
