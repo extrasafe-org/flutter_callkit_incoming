@@ -103,8 +103,7 @@ class OngoingNotificationService : Service() {
                 val headers =
                     data.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
 
-                getPicassoInstance(this@OngoingNotificationService, headers).load(avatarUrl)
-                    .transform(CircleTransform())
+                getPicassoInstance(this, headers).load(avatarUrl).transform(CircleTransform())
                     .into(createAvatarTargetCustom(onGoingNotificationId))
             }
             notificationBuilder.setStyle(NotificationCompat.DecoratedCustomViewStyle())
@@ -186,14 +185,16 @@ class OngoingNotificationService : Service() {
 
 
     private fun getAppPendingIntent(notificationId: Int, data: Bundle): PendingIntent {
-        val intent: Intent? = AppUtils.getAppIntent(this@OngoingNotificationService, data = data)
         return PendingIntent.getActivity(
-            this@OngoingNotificationService, notificationId, intent, getFlagPendingIntent()
+            this,
+            notificationId,
+            AppUtils.getAppIntent(this, data = data),
+            getFlagPendingIntent(),
         )
     }
 
     override fun onBind(p0: Intent?): IBinder? {
-        return null;
+        return null
     }
 
     private fun getFlagPendingIntent(): Int {
@@ -227,11 +228,9 @@ class OngoingNotificationService : Service() {
                 getNotificationManager().notify(notificationId, notificationBuilder.build())
             }
 
-            override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
-            }
+            override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {}
 
-            override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
-            }
+            override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
         }
     }
 
@@ -274,7 +273,7 @@ class OngoingNotificationService : Service() {
     }
 
     private fun getNotificationManager(): NotificationManagerCompat {
-        return NotificationManagerCompat.from(this@OngoingNotificationService)
+        return NotificationManagerCompat.from(this)
     }
 }
 
