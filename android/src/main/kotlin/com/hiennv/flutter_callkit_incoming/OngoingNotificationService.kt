@@ -35,7 +35,7 @@ class OngoingNotificationService : Service() {
             showOngoingCallNotification(intent.extras!!)
         }
 
-        return START_REDELIVER_INTENT
+        return START_STICKY
     }
 
     private fun showOngoingCallNotification(data: Bundle) {
