@@ -33,8 +33,6 @@ import kotlin.math.abs
 
 class CallkitIncomingActivity : Activity() {
     companion object {
-        private const val ACTION_ENDED_CALL_INCOMING =
-            "com.hiennv.flutter_callkit_incoming.ACTION_ENDED_CALL_INCOMING"
         private const val CLASS_NAME = "com.hiennv.flutter_callkit_incoming.CallkitIncomingActivity"
 
         fun getIntent(context: Context, data: Bundle) =
@@ -48,15 +46,10 @@ class CallkitIncomingActivity : Activity() {
                 `package` = packageName
             }
 
-        fun getIntentEnded(context: Context, isAccepted: Boolean): Intent {
-            val packageName = context.packageName
-
-            val intent = Intent("$packageName.${ACTION_ENDED_CALL_INCOMING}")
-            intent.putExtra("ACCEPTED", isAccepted)
-            intent.setPackage(packageName)
-            intent.setClassName(packageName, CLASS_NAME)
-            return intent
-        }
+        fun getIntentEnded(context: Context, isAccepted: Boolean) =
+            Intent("${context.packageName}.${CallkitConstants.ACTION_ENDED_CALL_INCOMING}").apply {
+                putExtra("ACCEPTED", isAccepted)
+            }
     }
 
     inner class EndedCallkitIncomingBroadcastReceiver : BroadcastReceiver() {
@@ -72,7 +65,7 @@ class CallkitIncomingActivity : Activity() {
         }
     }
 
-    private var endedCallkitIncomingBroadcastReceiver = EndedCallkitIncomingBroadcastReceiver()
+    private val endedCallkitIncomingBroadcastReceiver = EndedCallkitIncomingBroadcastReceiver()
 
     private lateinit var ivBackground: ImageView
     private lateinit var llBackgroundAnimation: RippleRelativeLayout
@@ -92,6 +85,19 @@ class CallkitIncomingActivity : Activity() {
     @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(
+                endedCallkitIncomingBroadcastReceiver,
+                IntentFilter("$packageName.${CallkitConstants.ACTION_ENDED_CALL_INCOMING}"),
+                RECEIVER_EXPORTED,
+            )
+        } else {
+            registerReceiver(
+                endedCallkitIncomingBroadcastReceiver,
+                IntentFilter("$packageName.${CallkitConstants.ACTION_ENDED_CALL_INCOMING}"),
+            )
+        }
 
         requestedOrientation = if (!Utils.isTablet(this@CallkitIncomingActivity)) {
             ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
@@ -114,19 +120,6 @@ class CallkitIncomingActivity : Activity() {
         setContentView(R.layout.activity_callkit_incoming)
         initView()
         incomingData(intent)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(
-                endedCallkitIncomingBroadcastReceiver,
-                IntentFilter("${packageName}.${ACTION_ENDED_CALL_INCOMING}"),
-                Context.RECEIVER_EXPORTED,
-            )
-        } else {
-            registerReceiver(
-                endedCallkitIncomingBroadcastReceiver,
-                IntentFilter("${packageName}.${ACTION_ENDED_CALL_INCOMING}")
-            )
-        }
     }
 
     private fun wakeLockRequest(duration: Long) {
@@ -163,7 +156,10 @@ class CallkitIncomingActivity : Activity() {
 
     private fun incomingData(intent: Intent) {
         val data = intent.extras?.getBundle(CallkitConstants.EXTRA_CALLKIT_INCOMING_DATA)
-        if (data == null) finish()
+
+        if (data == null) {
+            finish()
+        }
 
         val isShowFullLockedScreen =
             data?.getBoolean(CallkitConstants.EXTRA_CALLKIT_IS_SHOW_FULL_LOCKED_SCREEN, true)
