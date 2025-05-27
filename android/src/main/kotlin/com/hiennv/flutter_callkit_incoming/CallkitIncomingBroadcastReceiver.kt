@@ -12,7 +12,6 @@ class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
         private const val TAG = "CallkitIncomingBroadcastReceiver"
         private const val CLASS_NAME =
             "com.hiennv.flutter_callkit_incoming.CallkitIncomingBroadcastReceiver"
-        var silenceEvents = false
 
         fun getIntent(context: Context, action: String, data: Bundle?) =
             Intent().apply {
@@ -221,8 +220,6 @@ class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
     }
 
     private fun sendEventFlutter(event: String, data: Bundle) {
-        if (silenceEvents) return
-
         val android = mapOf(
             "isCustomNotification" to data.getBoolean(
                 CallkitConstants.EXTRA_CALLKIT_IS_CUSTOM_NOTIFICATION,

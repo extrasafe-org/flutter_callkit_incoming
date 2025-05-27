@@ -3,6 +3,8 @@ package com.hiennv.flutter_callkit_incoming
 object CallkitConstants {
     const val ACTION_CALL_INCOMING =
         "com.hiennv.flutter_callkit_incoming.ACTION_CALL_INCOMING"
+    const val ACTION_ENDED_CALL_INCOMING =
+        "com.hiennv.flutter_callkit_incoming.ACTION_ENDED_CALL_INCOMING"
     const val ACTION_CALL_START = "com.hiennv.flutter_callkit_incoming.ACTION_CALL_START"
     const val ACTION_CALL_ACCEPT =
         "com.hiennv.flutter_callkit_incoming.ACTION_CALL_ACCEPT"
