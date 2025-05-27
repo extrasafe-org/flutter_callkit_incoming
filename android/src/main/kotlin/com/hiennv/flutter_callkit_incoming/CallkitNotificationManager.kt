@@ -92,7 +92,7 @@ class CallkitNotificationManager(private val context: Context) {
         val activityPendingIntent = getActivityPendingIntent(notificationId, data)
         val timeoutPendingIntent = getTimeOutPendingIntent(notificationId, data)
 
-        createNotificationChanel(data)
+        createNotificationChannel(data)
         notificationBuilder = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID_INCOMING)
             .setAutoCancel(false)
             .setChannelId(NOTIFICATION_CHANNEL_ID_INCOMING)
@@ -104,8 +104,7 @@ class CallkitNotificationManager(private val context: Context) {
             .setSound(null)
             .setContentIntent(activityPendingIntent)
             .setDeleteIntent(timeoutPendingIntent)
-        // we removed the ongoing notification service, so this flag is commented out for now
-        // .setOngoing(true)
+            .setOngoing(true)
 
         // set call accept button icon
         val callType = data.getInt(CallkitConstants.EXTRA_CALLKIT_TYPE, -1)
@@ -257,7 +256,7 @@ class CallkitNotificationManager(private val context: Context) {
             CallkitConstants.EXTRA_CALLKIT_MISSED_CALL_ID,
             data.getString(CallkitConstants.EXTRA_CALLKIT_ID, "callkit_incoming").hashCode() + 1
         )
-        createNotificationChanel(data);
+        createNotificationChannel(data);
         val missedCallSound: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         val typeCall = data.getInt(CallkitConstants.EXTRA_CALLKIT_TYPE, -1)
         var smallIcon = context.applicationInfo.icon
@@ -394,7 +393,7 @@ class CallkitNotificationManager(private val context: Context) {
         return areNotificationsEnabled() && (channel != null && channel.importance > NotificationManagerCompat.IMPORTANCE_NONE)
     }
 
-    public fun createNotificationChanel(data: Bundle) {
+    fun createNotificationChannel(data: Bundle) {
         val incomingCallChannelName = data.getString(
             CallkitConstants.EXTRA_CALLKIT_INCOMING_CALL_NOTIFICATION_CHANNEL_NAME, "Incoming Call"
         )
@@ -462,7 +461,7 @@ class CallkitNotificationManager(private val context: Context) {
             if (startsWithHttp || startsWithHttps) {
                 bundleAvatarUrl
             } else {
-                "file:///$bundleAvatarUrl"
+                "file:///android_asset/flutter_assets/$bundleAvatarUrl"
             }
         } else {
             null
@@ -570,11 +569,14 @@ class CallkitNotificationManager(private val context: Context) {
                                 it, Manifest.permission.POST_NOTIFICATIONS
                             )
                         ) {
+                            val rationaleMessagePermission =
+                                this.dataNotificationPermission["rationaleMessagePermission"]
+
                             //showDialogPermissionRationale()
-                            if (this.dataNotificationPermission["rationaleMessagePermission"] != null) {
+                            if (rationaleMessagePermission != null) {
                                 showDialogMessage(
                                     it,
-                                    this.dataNotificationPermission["rationaleMessagePermission"] as String
+                                    rationaleMessagePermission as String
                                 ) { dialog, _ ->
                                     dialog?.dismiss()
                                     requestNotificationPermission(
@@ -587,33 +589,24 @@ class CallkitNotificationManager(private val context: Context) {
                                 )
                             }
                         } else {
-                            //Open Setting
-                            if (this.dataNotificationPermission["postNotificationMessageRequired"] != null) {
-                                showDialogMessage(
-                                    it,
-                                    this.dataNotificationPermission["postNotificationMessageRequired"] as String
-                                ) { dialog, _ ->
-                                    dialog?.dismiss()
-                                    val intent = Intent(
-                                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                        Uri.fromParts("package", it.packageName, null)
-                                    )
-                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    it.startActivity(intent)
-                                }
+                            val postNotificationMessageRequired =
+                                this.dataNotificationPermission["postNotificationMessageRequired"]
+                            val message = if (postNotificationMessageRequired != null) {
+                                postNotificationMessageRequired as String
                             } else {
-                                showDialogMessage(
-                                    it,
-                                    it.resources.getString(R.string.text_post_notification_message_required)
-                                ) { dialog, _ ->
-                                    dialog?.dismiss()
-                                    val intent = Intent(
-                                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                        Uri.fromParts("package", it.packageName, null)
-                                    )
-                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    it.startActivity(intent)
-                                }
+                                it.resources.getString(R.string.text_post_notification_message_required)
+                            }
+
+                            //Open Setting
+                            showDialogMessage(it, message) { dialog, _ ->
+                                dialog?.dismiss()
+                                val intent = Intent(
+                                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                    Uri.fromParts("package", it.packageName, null),
+                                )
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                                it.startActivity(intent)
                             }
                         }
                     }

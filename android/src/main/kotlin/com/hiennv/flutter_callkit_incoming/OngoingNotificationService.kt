@@ -1,5 +1,6 @@
 package com.hiennv.flutter_callkit_incoming
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationManager
@@ -7,6 +8,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.os.Build
@@ -17,6 +19,7 @@ import android.view.View
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.PermissionChecker
 import androidx.core.graphics.toColorInt
 import com.hiennv.flutter_callkit_incoming.widgets.CircleTransform
 import com.squareup.picasso.OkHttp3Downloader
@@ -35,6 +38,17 @@ class OngoingNotificationService : Service() {
 
     @SuppressLint("MissingPermission")
     private fun showOngoingCallNotification(data: Bundle) {
+        val cameraPermission =
+            PermissionChecker.checkSelfPermission(this, Manifest.permission.CAMERA)
+        val microphonePermission =
+            PermissionChecker.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+        val permissionGrantedFlag = PermissionChecker.PERMISSION_GRANTED
+
+        // Without neither camera nor audio permissions, the service cannot run in the foreground
+        if (cameraPermission != permissionGrantedFlag && microphonePermission != permissionGrantedFlag) {
+            return stopSelf()
+        }
+
         val onGoingNotificationId = data.getInt(
             CallkitConstants.EXTRA_CALLKIT_MISSED_CALL_ID,
             data.getString(CallkitConstants.EXTRA_CALLKIT_ID, "callkit_incoming").hashCode() + 999
@@ -108,7 +122,7 @@ class OngoingNotificationService : Service() {
             )
             notificationBuilder.setContentText(
                 data.getString(
-                    CallkitConstants.EXTRA_CALLKIT_HANDLE, ""
+                    CallkitConstants.EXTRA_CALLKIT_CALLING_CONTENT, ""
                 )
             )
             val avatarUrl = getAvatarUrl(data)
@@ -147,15 +161,22 @@ class OngoingNotificationService : Service() {
         }
         notificationBuilder.setOngoing(true)
         val notification = notificationBuilder.build()
+        val typeCall = data.getInt(CallkitConstants.EXTRA_CALLKIT_TYPE, -1)
 
-        // we do not have the correct permissions for starting an ongoing notifications service
-        // so we disable its start here
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-//            startForeground(
-//                onGoingNotificationId, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL
-//            )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val serviceType = if (typeCall > 0) {
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
+            } else {
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+            }
+
+            startForeground(
+                onGoingNotificationId,
+                notification,
+                serviceType,
+            )
         } else {
-//            startForeground(onGoingNotificationId, notification)
+            startForeground(onGoingNotificationId, notification)
         }
     }
 
@@ -232,7 +253,7 @@ class OngoingNotificationService : Service() {
             if (startsWithHttp || startsWithHttps) {
                 bundleAvatarUrl
             } else {
-                "file:///$bundleAvatarUrl"
+                "file:///android_asset/flutter_assets/$bundleAvatarUrl"
             }
         } else {
             null
