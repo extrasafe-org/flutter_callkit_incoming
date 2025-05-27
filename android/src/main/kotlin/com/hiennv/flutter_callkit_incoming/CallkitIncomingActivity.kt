@@ -35,17 +35,26 @@ class CallkitIncomingActivity : Activity() {
     companion object {
         private const val ACTION_ENDED_CALL_INCOMING =
             "com.hiennv.flutter_callkit_incoming.ACTION_ENDED_CALL_INCOMING"
+        private const val CLASS_NAME = "com.hiennv.flutter_callkit_incoming.CallkitIncomingActivity"
 
         fun getIntent(context: Context, data: Bundle) =
             Intent(CallkitConstants.ACTION_CALL_INCOMING).apply {
-                action = "${context.packageName}.${CallkitConstants.ACTION_CALL_INCOMING}"
+                val packageName = context.packageName
+
+                setClassName(packageName, CLASS_NAME)
+                action = "$packageName.${CallkitConstants.ACTION_CALL_INCOMING}"
                 putExtra(CallkitConstants.EXTRA_CALLKIT_INCOMING_DATA, data)
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                `package` = packageName
             }
 
         fun getIntentEnded(context: Context, isAccepted: Boolean): Intent {
-            val intent = Intent("${context.packageName}.${ACTION_ENDED_CALL_INCOMING}")
+            val packageName = context.packageName
+
+            val intent = Intent("$packageName.${ACTION_ENDED_CALL_INCOMING}")
             intent.putExtra("ACCEPTED", isAccepted)
+            intent.setPackage(packageName)
+            intent.setClassName(packageName, CLASS_NAME)
             return intent
         }
     }
