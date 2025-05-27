@@ -1,7 +1,6 @@
 package com.hiennv.flutter_callkit_incoming
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -39,7 +38,6 @@ class OngoingNotificationService : Service() {
         return START_REDELIVER_INTENT
     }
 
-    @SuppressLint("MissingPermission")
     private fun showOngoingCallNotification(data: Bundle) {
         val cameraPermission =
             PermissionChecker.checkSelfPermission(this, Manifest.permission.CAMERA)
@@ -105,8 +103,7 @@ class OngoingNotificationService : Service() {
                 val headers =
                     data.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
 
-                getPicassoInstance(this@OngoingNotificationService, headers).load(avatarUrl)
-                    .transform(CircleTransform())
+                getPicassoInstance(this, headers).load(avatarUrl).transform(CircleTransform())
                     .into(createAvatarTargetCustom(onGoingNotificationId))
             }
             notificationBuilder.setStyle(NotificationCompat.DecoratedCustomViewStyle())
@@ -159,19 +156,22 @@ class OngoingNotificationService : Service() {
         }
         notificationBuilder.setOngoing(true)
         val notification = notificationBuilder.build()
-        val typeCall = data.getInt(CallkitConstants.EXTRA_CALLKIT_TYPE, -1)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val serviceType = if (typeCall > 0) {
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
-            } else {
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+            // if the camera permission is granted add it
+            if (cameraPermission == permissionGrantedFlag) {
+                startForeground(
+                    onGoingNotificationId,
+                    notification,
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA,
+                )
             }
 
+            // always request the microphone service permission to be able to record audio while in background
             startForeground(
                 onGoingNotificationId,
                 notification,
-                serviceType,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE,
             )
         } else {
             startForeground(onGoingNotificationId, notification)
@@ -185,14 +185,16 @@ class OngoingNotificationService : Service() {
 
 
     private fun getAppPendingIntent(notificationId: Int, data: Bundle): PendingIntent {
-        val intent: Intent? = AppUtils.getAppIntent(this@OngoingNotificationService, data = data)
         return PendingIntent.getActivity(
-            this@OngoingNotificationService, notificationId, intent, getFlagPendingIntent()
+            this,
+            notificationId,
+            AppUtils.getAppIntent(this, data = data),
+            getFlagPendingIntent(),
         )
     }
 
     override fun onBind(p0: Intent?): IBinder? {
-        return null;
+        return null
     }
 
     private fun getFlagPendingIntent(): Int {
@@ -210,27 +212,39 @@ class OngoingNotificationService : Service() {
         return Picasso.Builder(context).downloader(OkHttp3Downloader(client)).build()
     }
 
-    @SuppressLint("MissingPermission")
     private fun createAvatarTargetCustom(notificationId: Int): Target {
         return object : Target {
             override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    val canPostNotifications = PermissionChecker.checkSelfPermission(
+                        this@OngoingNotificationService, Manifest.permission.POST_NOTIFICATIONS
+                    )
+
+                    if (canPostNotifications != PermissionChecker.PERMISSION_GRANTED) return
+                }
+
                 notificationViews?.setImageViewBitmap(R.id.ivAvatar, bitmap)
                 notificationViews?.setViewVisibility(R.id.ivAvatar, View.VISIBLE)
                 getNotificationManager().notify(notificationId, notificationBuilder.build())
             }
 
-            override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
-            }
+            override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {}
 
-            override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
-            }
+            override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
         }
     }
 
-    @SuppressLint("MissingPermission")
     private fun createAvatarTargetDefault(notificationId: Int): Target {
         return object : Target {
             override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    val canPostNotifications = PermissionChecker.checkSelfPermission(
+                        this@OngoingNotificationService, Manifest.permission.POST_NOTIFICATIONS
+                    )
+
+                    if (canPostNotifications != PermissionChecker.PERMISSION_GRANTED) return
+                }
+
                 notificationBuilder.setLargeIcon(bitmap)
                 getNotificationManager().notify(notificationId, notificationBuilder.build())
             }
@@ -259,7 +273,7 @@ class OngoingNotificationService : Service() {
     }
 
     private fun getNotificationManager(): NotificationManagerCompat {
-        return NotificationManagerCompat.from(this@OngoingNotificationService)
+        return NotificationManagerCompat.from(this)
     }
 }
 
