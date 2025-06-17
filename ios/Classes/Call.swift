@@ -178,7 +178,7 @@ public class Call: NSObject {
         self.supportsVideo = true
         self.maximumCallGroups = 2
         self.maximumCallsPerCallGroup = 1
-        self.supportsDTMF = true
+        self.supportsDTMF = supportsDTMF
         self.supportsHolding = supportsHolding
         self.supportsGrouping = supportsGrouping
         self.supportsUngrouping = supportsUngrouping
