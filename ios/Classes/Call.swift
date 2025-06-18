@@ -5,15 +5,13 @@
 //  Created by Hien Nguyen on 07/10/2021.
 //
 
-import Foundation
 import AVFoundation
+import Foundation
 
 public class Call: NSObject {
-    
     public var uuid: UUID
     public var data: Data
     public var isOutGoing: Bool
-    
     public var handle: String?
     
     var stateDidChange: (() -> Void)?
@@ -21,62 +19,60 @@ public class Call: NSObject {
     var hasConnectDidChange: (() -> Void)?
     var hasEndedDidChange: (() -> Void)?
     
-    var connectData: Date?{
-        didSet{
+    var connectData: Date? {
+        didSet {
             stateDidChange?()
             hasStartedConnectDidChange?()
         }
     }
     
-    var connectedData: Date?{
-        didSet{
+    var connectedData: Date? {
+        didSet {
             stateDidChange?()
             hasConnectDidChange?()
         }
     }
     
-    var endDate: Date?{
-        didSet{
+    var endDate: Date? {
+        didSet {
             stateDidChange?()
             hasEndedDidChange?()
         }
     }
     
-    var isOnHold = false{
-        didSet{
+    var isOnHold = false {
+        didSet {
             stateDidChange?()
         }
     }
     
-    var isMuted = false{
-        didSet{
-            
-        }
+    var isMuted = false {
+        didSet {}
     }
     
-    var hasStartedConnecting: Bool{
-        get{
+    var hasStartedConnecting: Bool {
+        get {
             return connectData != nil
         }
-        set{
+        set {
             connectData = newValue ? Date() : nil
         }
     }
     
     var hasConnected: Bool {
-        get{
+        get {
             return connectedData != nil
         }
-        set{
+        set {
             connectedData = newValue ? Date() : nil
         }
     }
     
     var hasEnded: Bool {
-        get{
+        get {
             return endDate != nil
         }
-        set{
+        set {
             endDate = newValue ? Date() : nil
         }
     }
@@ -88,7 +84,7 @@ public class Call: NSObject {
         return Date().timeIntervalSince(connectDate)
     }
     
-    init(uuid: UUID, data: Data, isOutGoing: Bool = false){
+    init(uuid: UUID, data: Data, isOutGoing: Bool = false) {
         self.uuid = uuid
         self.data = data
         self.isOutGoing = isOutGoing
@@ -96,34 +92,36 @@ public class Call: NSObject {
     
     var startCallCompletion: ((Bool) -> Void)?
     
-    func startCall(withAudioSession audioSession: AVAudioSession ,completion :((_ success : Bool)->Void)?){
+    func startCall(
+        withAudioSession audioSession: AVAudioSession,
+        completion: ((_ success: Bool) -> Void)?
+    ) {
         startCallCompletion = completion
         hasStartedConnecting = true
     }
     
-    var answCallCompletion :((Bool) -> Void)?
+    var answCallCompletion: ((Bool) -> Void)?
     
-    func ansCall(withAudioSession audioSession: AVAudioSession ,completion :((_ success : Bool)->Void)?){
+    func ansCall(
+        withAudioSession audioSession: AVAudioSession,
+        completion: ((_ success: Bool) -> Void)?
+    ) {
         answCallCompletion = completion
         hasStartedConnecting = true
     }
     
     var connectedCallCompletion: ((Bool) -> Void)?
     
-    func connectedCall(completion :((_ success : Bool)->Void)?){
+    func connectedCall(completion: ((_ success: Bool) -> Void)?) {
         connectedCallCompletion = completion
         hasConnected = true
     }
     
-    func endCall(){
+    func endCall() {
         hasEnded = true
     }
     
-    func startAudio() {
-        
-    }
-    
-    
+    func startAudio() {}
 }
 
 @objc public class Data: NSObject {
@@ -137,7 +135,7 @@ public class Call: NSObject {
     @objc public var duration: Int
     @objc public var extra: NSDictionary
     
-    //iOS
+    // iOS
     @objc public var iconName: String
     @objc public var handleType: String
     @objc public var supportsVideo: Bool
@@ -155,7 +153,17 @@ public class Call: NSObject {
     @objc public var audioSessionPreferredSampleRate: Double
     @objc public var audioSessionPreferredIOBufferDuration: Double
     
-    @objc public init(id: String, nameCaller: String, handle: String, type: Int) {
+    @objc public init(
+        id: String,
+        nameCaller: String,
+        handle: String,
+        type: Int,
+        supportsDTMF: Bool = true,
+        supportsHolding: Bool = true,
+        supportsGrouping: Bool = true,
+        supportsUngrouping: Bool = true,
+        extra: NSDictionary = [:]
+    ) {
         self.uuid = id
         self.nameCaller = nameCaller
         self.appName = "Callkit"
@@ -164,16 +172,16 @@ public class Call: NSObject {
         self.type = type
         self.normalHandle = 0
         self.duration = 30000
-        self.extra = [:]
+        self.extra = extra
         self.iconName = "CallKitLogo"
         self.handleType = ""
         self.supportsVideo = true
         self.maximumCallGroups = 2
         self.maximumCallsPerCallGroup = 1
-        self.supportsDTMF = true
-        self.supportsHolding = true
-        self.supportsGrouping = true
-        self.supportsUngrouping = true
+        self.supportsDTMF = supportsDTMF
+        self.supportsHolding = supportsHolding
+        self.supportsGrouping = supportsGrouping
+        self.supportsUngrouping = supportsUngrouping
         self.includesCallsInRecents = true
         self.ringtonePath = ""
         self.configureAudioSession = true
@@ -202,7 +210,6 @@ public class Call: NSObject {
         self.duration = args["duration"] as? Int ?? 30000
         self.extra = args["extra"] as? NSDictionary ?? [:]
         
-        
         if let ios = args["ios"] as? [String: Any] {
             self.iconName = ios["iconName"] as? String ?? "CallKitLogo"
             self.handleType = ios["handleType"] as? String ?? ""
@@ -220,12 +227,12 @@ public class Call: NSObject {
             self.audioSessionActive = ios["audioSessionActive"] as? Bool ?? true
             self.audioSessionPreferredSampleRate = ios["audioSessionPreferredSampleRate"] as? Double ?? 44100.0
             self.audioSessionPreferredIOBufferDuration = ios["audioSessionPreferredIOBufferDuration"] as? Double ?? 0.005
-        }else {
+        } else {
             self.iconName = args["iconName"] as? String ?? "CallKitLogo"
             self.handleType = args["handleType"] as? String ?? ""
             self.supportsVideo = args["supportsVideo"] as? Bool ?? true
             self.maximumCallGroups = args["maximumCallGroups"] as? Int ?? 2
-            self.maximumCallsPerCallGroup =  args["maximumCallsPerCallGroup"] as? Int ?? 1
+            self.maximumCallsPerCallGroup = args["maximumCallsPerCallGroup"] as? Int ?? 1
             self.supportsDTMF = args["supportsDTMF"] as? Bool ?? true
             self.supportsHolding = args["supportsHolding"] as? Bool ?? true
             self.supportsGrouping = args["supportsGrouping"] as? Bool ?? true
@@ -241,7 +248,7 @@ public class Call: NSObject {
     }
     
     open func toJSON() -> [String: Any] {
-        let ios: [String : Any] = [
+        let ios: [String: Any] = [
             "iconName": iconName,
             "handleType": handleType,
             "supportsVideo": supportsVideo,
@@ -259,7 +266,8 @@ public class Call: NSObject {
             "audioSessionPreferredSampleRate": audioSessionPreferredSampleRate,
             "audioSessionPreferredIOBufferDuration": audioSessionPreferredIOBufferDuration
         ]
-        let map: [String : Any] = [
+
+        return [
             "uuid": uuid,
             "id": uuid,
             "nameCaller": nameCaller,
@@ -272,13 +280,13 @@ public class Call: NSObject {
             "extra": extra,
             "ios": ios
         ]
-        return map
     }
     
     func getEncryptHandle() -> String {
-        if (normalHandle > 0) {
+        if normalHandle > 0 {
             return handle
         }
+
         do {
             var map: [String: Any] = [:]
 
@@ -287,7 +295,7 @@ public class Call: NSObject {
             
             var mapExtras = extra as? [String: Any]
             
-            if (mapExtras == nil) {
+            if mapExtras == nil {
                 print("error casting dictionary to [String: Any]")
                 return String(format: "{\"nameCaller\":\"%@\", \"handle\":\"%@\"}", nameCaller, handle).encryptHandle()
             }
@@ -296,17 +304,17 @@ public class Call: NSObject {
                 map[key] = value
             }
             
-            let mapData = try JSONSerialization.data(withJSONObject: map, options: .prettyPrinted)
+            let mapData = try JSONSerialization.data(
+                withJSONObject: map,
+                options: .prettyPrinted
+            )
 
-            let mapString: String = String(data: mapData, encoding: .utf8) ?? ""
+            let mapString = String(data: mapData, encoding: .utf8) ?? ""
 
             return mapString.encryptHandle()
         } catch {
             print("error encrypting call data")
             return String(format: "{\"nameCaller\":\"%@\", \"handle\":\"%@\"}", nameCaller, handle).encryptHandle()
         }
-       
     }
-    
-    
 }
