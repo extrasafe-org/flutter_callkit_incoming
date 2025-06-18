@@ -117,6 +117,9 @@ data class Data(val args: Map<String, Any?>) {
     @JsonProperty("callingNotificationSubtitle")
     var callingNotificationSubtitle: String? = null
 
+    @JsonProperty("callingNotificationContent")
+    var callingNotificationContent: String? = null
+
     @JsonProperty("callingNotificationCallbackText")
     var callingNotificationHangupText: String? = null
 
@@ -187,6 +190,7 @@ data class Data(val args: Map<String, Any?>) {
         if (callingNotification != null) {
             callingNotificationId = callingNotification["id"] as? Int?
             callingNotificationSubtitle = callingNotification["subtitle"] as? String?
+            callingNotificationContent = callingNotification["content"] as? String?
             //callingNotificationCount = missedNotification["count"] as? Int? ?: 1
             callingNotificationHangupText = callingNotification["callbackText"] as? String?
             isShowHangup = callingNotification["isShowCallback"] as? Boolean ?: true
@@ -259,6 +263,10 @@ data class Data(val args: Map<String, Any?>) {
         bundle.putString(
             CallkitConstants.EXTRA_CALLKIT_CALLING_SUBTITLE,
             callingNotificationSubtitle
+        )
+        bundle.putString(
+            CallkitConstants.EXTRA_CALLKIT_CALLING_CONTENT,
+            callingNotificationContent
         )
         bundle.putBoolean(
             CallkitConstants.EXTRA_CALLKIT_CALLING_HANG_UP_SHOW,
@@ -372,6 +380,9 @@ data class Data(val args: Map<String, Any?>) {
                 bundle.getBoolean(CallkitConstants.EXTRA_CALLKIT_CALLING_SHOW, true)
             data.callingNotificationSubtitle =
                 bundle.getString(CallkitConstants.EXTRA_CALLKIT_CALLING_SUBTITLE, "")
+            data.callingNotificationContent =
+                bundle.getString(CallkitConstants.EXTRA_CALLKIT_CALLING_CONTENT, "")
+
             data.isShowHangup =
                 bundle.getBoolean(CallkitConstants.EXTRA_CALLKIT_CALLING_HANG_UP_SHOW, false)
             data.callingNotificationHangupText =

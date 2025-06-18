@@ -2,17 +2,16 @@ group 'com.example.flutter_callkit_incoming'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.8.0'
+    ext {
+        kotlin_version = '2.1.10'
+    }
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
 
     dependencies {
-        //classpath 'com.android.tools.build:gradle:4.1.0'
-        //classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        
-        classpath 'com.android.tools.build:gradle:7.1.2'
+        classpath 'com.android.tools.build:gradle:8.9.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
@@ -20,45 +19,42 @@ buildscript {
 rootProject.allprojects {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
 }
 
 apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
-    compileSdk 34
+    compileSdk 36
 
     if (project.android.hasProperty("namespace")) {
         namespace "com.hiennv.flutter_callkit_incoming"
     }
-    
-    sourceSets {
-        main.java.srcDirs += 'src/main/kotlin'
-    }
+
     defaultConfig {
-        minSdk 16
-        targetSdk 34
+        minSdkVersion 26
+        targetSdkVersion 36
 
         consumerProguardFiles 'consumer-rules.pro'
     }
-}
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+    namespace 'com.hiennv.flutter_callkit_incoming'
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+    }
+    
+    kotlinOptions {
+        jvmTarget = '21'
     }
 }
 
-kotlin {
-    jvmToolchain(17)
-}
-
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'androidx.core:core-ktx:1.13.1'
-    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.core:core-ktx:1.15.0'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'de.hdodenhof:circleimageview:3.1.0'
     implementation 'com.squareup.picasso:picasso:2.71828'
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'

@@ -4,10 +4,8 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import androidx.annotation.NonNull
 import com.hiennv.flutter_callkit_incoming.Utils.Companion.reapCollection
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -15,7 +13,6 @@ import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.*
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
-import io.flutter.plugin.common.MethodChannel.Result
 import java.lang.ref.WeakReference
 
 
@@ -147,7 +144,7 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
         }
     }
 
-    override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
+    override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: MethodChannel.Result) {
         try {
             when (call.method) {
                 "showCallkitIncoming" -> {
@@ -261,14 +258,14 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
                     result.success(getDataActiveCallsForFlutter(context))
                 }
 
+                // iOS only
                 "getDevicePushTokenVoIP" -> {
                     result.success("")
                 }
 
+                // iOS only
                 "silenceEvents" -> {
-                    val silence = call.arguments as? Boolean ?: false
-                    CallkitIncomingBroadcastReceiver.silenceEvents = silence
-                    result.success("")
+                    result.success("OK")
                 }
 
                 "requestNotificationPermission" -> {
@@ -281,9 +278,15 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
                     callkitNotificationManager?.requestNotificationPermission(activity, map)
                 }
 
-                "requestFullIntentPermission" -> {
-                    callkitNotificationManager?.requestFullIntentPermission(activity)
+                "canUseFullScreenIntent" -> {
+                    val canUse = callkitNotificationManager?.canUseFullScreenIntent()
+                    result.success(canUse)
                 }
+
+                "openFullScreenNotificationsSettings" -> {
+                    callkitNotificationManager?.openFullScreenNotificationsSettings(activity)
+                }
+
                 // EDIT - clear the incoming notification/ring (after accept/decline/timeout)
                 "hideCallkitIncoming" -> {
                     val data = Data(call.arguments() ?: HashMap())
@@ -291,13 +294,9 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
                     callkitNotificationManager?.clearIncomingNotification(data.toBundle(), false)
                 }
 
-                "endNativeSubsystemOnly" -> {
+                "endNativeSubsystemOnly" -> {}
 
-                }
-
-                "setAudioRoute" -> {
-
-                }
+                "setAudioRoute" -> {}
             }
         } catch (error: Exception) {
             result.error("error", error.message, "")
@@ -315,8 +314,7 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
         binding.addRequestPermissionsResultListener(this)
     }
 
-    override fun onDetachedFromActivityForConfigChanges() {
-    }
+    override fun onDetachedFromActivityForConfigChanges() {}
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
         instance.context = binding.activity.applicationContext
@@ -324,9 +322,7 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
         binding.addRequestPermissionsResultListener(this)
     }
 
-    override fun onDetachedFromActivity() {
-
-    }
+    override fun onDetachedFromActivity() {}
 
     class EventCallbackHandler : EventChannel.StreamHandler {
 
@@ -363,6 +359,4 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
         )
         return true
     }
-
-
 }

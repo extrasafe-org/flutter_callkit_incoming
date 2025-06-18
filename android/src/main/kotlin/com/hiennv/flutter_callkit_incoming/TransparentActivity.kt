@@ -6,7 +6,6 @@ import android.content.Intent
 import android.os.Bundle
 
 class TransparentActivity : Activity() {
-
     companion object {
         fun getIntent(context: Context, action: String, data: Bundle?): Intent {
             val intent = Intent(context, TransparentActivity::class.java)
@@ -21,7 +20,6 @@ class TransparentActivity : Activity() {
         }
     }
 
-
     override fun onStart() {
         super.onStart()
         setVisible(false)
@@ -32,7 +30,8 @@ class TransparentActivity : Activity() {
 
         val data = intent.getBundleExtra("data")
 
-        val broadcastIntent = CallkitIncomingBroadcastReceiver.getIntent(this, intent.action!!, data)
+        val broadcastIntent =
+            CallkitIncomingBroadcastReceiver.getIntent(this, intent.action!!, data)
         broadcastIntent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND)
         sendBroadcast(broadcastIntent)
 

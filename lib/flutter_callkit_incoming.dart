@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'entities/entities.dart';
@@ -12,10 +13,8 @@ import 'entities/entities.dart';
 /// * callConnected(dynamic)
 
 class FlutterCallkitIncoming {
-  static const MethodChannel _channel =
-      MethodChannel('flutter_callkit_incoming');
-  static const EventChannel _eventChannel =
-      EventChannel('flutter_callkit_incoming_events');
+  static const MethodChannel _channel = MethodChannel('flutter_callkit_incoming');
+  static const EventChannel _eventChannel = EventChannel('flutter_callkit_incoming_events');
 
   /// Listen to event callback from [FlutterCallkitIncoming].
   ///
@@ -34,8 +33,7 @@ class FlutterCallkitIncoming {
   /// Event.ACTION_CALL_TOGGLE_AUDIO_SESSION - only iOS
   /// Event.DID_UPDATE_DEVICE_PUSH_TOKEN_VOIP - only iOS
   /// }
-  static Stream<CallEvent?> get onEvent =>
-      _eventChannel.receiveBroadcastStream().map(_receiveCallEvent);
+  static Stream<CallEvent?> get onEvent => _eventChannel.receiveBroadcastStream().map(_receiveCallEvent);
 
   /// Show Callkit Incoming.
   /// On iOS, using Callkit. On Android, using a custom UI.
@@ -73,8 +71,7 @@ class FlutterCallkitIncoming {
   /// On iOS, using Callkit(update call ui).
   /// On Android, Nothing(only callback event listener).
   static Future<bool> isMuted(String id) async {
-    return (await _channel.invokeMethod("isMuted", {'id': id})) as bool? ??
-        false;
+    return (await _channel.invokeMethod("isMuted", {'id': id})) as bool? ?? false;
   }
 
   /// Hold an Ongoing call.
@@ -127,16 +124,38 @@ class FlutterCallkitIncoming {
     return await _channel.invokeMethod("silenceEvents", false);
   }
 
-  /// Request permisstion show notification for Android(13)
+  /// Request permission show notification for Android(13)
   /// Only Android: show request permission post notification for Android 13+
   static Future requestNotificationPermission(dynamic data) async {
     return await _channel.invokeMethod("requestNotificationPermission", data);
   }
 
-  /// Request permisstion show notification for Android(14)+
-  /// Only Android: show request permission for ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT
-  static Future requestFullIntentPermission() async {
-    return await _channel.invokeMethod("requestFullIntentPermission");
+  /// Opens full screen notifications settings activity. Android only.
+  ///
+  /// For devices with Android SDK API >= 34, opens the full screen notification settings activity declared by
+  /// the `Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT` intent. For devices with Android SDK API < 34
+  /// and iOS devices, does nothing.
+  static Future<void> openFullScreenNotificationsSettings() async {
+    try {
+      await _channel.invokeMethod("openFullScreenNotificationsSettings");
+    } catch (e) {
+      debugPrint('Error when opening full screen notifications settings: $e');
+    }
+  }
+
+  /// Returns `true` if the app has permission to show full screen notifications when the device is locked.
+  ///
+  /// On iOS, always returns `true`. On Android:
+  /// - for devices with Android SDK API >= 34, checks whether the `USE_FULL_SCREEN_INTENT` has been granted;
+  /// - for devices with Android SDK API < 34, returns `true`.
+  static Future<bool> canUseFullScreenIntent() async {
+    try {
+      final result = await _channel.invokeMethod('canUseFullScreenIntent');
+      return result as bool;
+    } catch (e) {
+      debugPrint('Error while calling canUseFullScreenIntent: $e');
+      return false;
+    }
   }
 
   static CallEvent? _receiveCallEvent(dynamic data) {

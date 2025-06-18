@@ -8,12 +8,13 @@ part of 'notification_params.dart';
 
 NotificationParams _$NotificationParamsFromJson(Map<String, dynamic> json) =>
     NotificationParams(
-      id: json['id'] as int?,
+      id: (json['id'] as num?)?.toInt(),
       showNotification: json['showNotification'] as bool?,
       subtitle: json['subtitle'] as String?,
       callbackText: json['callbackText'] as String?,
       isShowCallback: json['isShowCallback'] as bool?,
-      count: json['count'] as int?,
+      content: json['content'] as String?,
+      count: (json['count'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$NotificationParamsToJson(NotificationParams instance) =>
@@ -23,5 +24,6 @@ Map<String, dynamic> _$NotificationParamsToJson(NotificationParams instance) =>
       'subtitle': instance.subtitle,
       'callbackText': instance.callbackText,
       'isShowCallback': instance.isShowCallback,
+      'content': instance.content,
       'count': instance.count,
     };

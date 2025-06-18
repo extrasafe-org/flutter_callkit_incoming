@@ -1,27 +1,32 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.hiennv.flutter_callkit_incoming">
 
-    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
 
     <application>
 
         <activity
             android:name="com.hiennv.flutter_callkit_incoming.CallkitIncomingActivity"
-            android:taskAffinity="com.hiennv.flutter_callkit_incoming.INCOMING_CALL_AFFINITY"
+            android:taskAffinity=""
             android:excludeFromRecents="true"
             android:noHistory="true"
             android:turnScreenOn="true"
             android:configChanges="orientation"
-            android:exported="false"
+            android:exported="true"
             android:launchMode="singleInstance"
-            android:allowTaskReparenting="false"
             android:theme="@style/CallkitIncomingTheme">
+            <!-- android:exported="false"
+             android:allowTaskReparenting="false"-->
             <intent-filter>
                 <action android:name="${applicationId}.com.hiennv.flutter_callkit_incoming.ACTION_CALL_INCOMING" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -30,7 +35,7 @@
         <activity
             android:exported="false"
             android:theme="@style/TranslucentTheme"
-            android:name="com.hiennv.flutter_callkit_incoming.TransparentActivity"/>
+            android:name="com.hiennv.flutter_callkit_incoming.TransparentActivity" />
 
         <receiver
             android:name="com.hiennv.flutter_callkit_incoming.CallkitIncomingBroadcastReceiver"
@@ -48,13 +53,11 @@
         <service
             android:enabled="true"
             android:exported="true"
-            android:name="com.hiennv.flutter_callkit_incoming.CallkitSoundPlayerService"/>
-
+            android:name="com.hiennv.flutter_callkit_incoming.CallkitSoundPlayerService" />
         <service
+            android:name="com.hiennv.flutter_callkit_incoming.OngoingNotificationService"
             android:enabled="true"
             android:exported="true"
-            android:foregroundServiceType="phoneCall"
-            android:name="com.hiennv.flutter_callkit_incoming.OngoingNotificationService"/>
-
+            android:foregroundServiceType="camera|microphone" />
     </application>
 </manifest>

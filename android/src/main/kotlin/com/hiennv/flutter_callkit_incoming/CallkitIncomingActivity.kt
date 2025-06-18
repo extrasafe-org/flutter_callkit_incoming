@@ -1,7 +1,6 @@
 package com.hiennv.flutter_callkit_incoming
 
 import android.app.Activity
-import android.app.ActivityManager
 import android.app.KeyguardManager
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -13,44 +12,44 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
+import android.text.TextUtils
 import android.view.View
+import android.view.ViewGroup.MarginLayoutParams
 import android.view.Window
 import android.view.WindowManager
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.graphics.toColorInt
 import com.hiennv.flutter_callkit_incoming.widgets.RippleRelativeLayout
+import com.squareup.picasso.OkHttp3Downloader
 import com.squareup.picasso.Picasso
 import de.hdodenhof.circleimageview.CircleImageView
-import kotlin.math.abs
 import okhttp3.OkHttpClient
-import com.squareup.picasso.OkHttp3Downloader
-import android.view.ViewGroup.MarginLayoutParams
-import android.os.PowerManager
-import android.text.TextUtils
-import android.util.Log
+import kotlin.math.abs
 
 
 class CallkitIncomingActivity : Activity() {
-
     companion object {
-
-        private const val ACTION_ENDED_CALL_INCOMING =
-            "com.hiennv.flutter_callkit_incoming.ACTION_ENDED_CALL_INCOMING"
+        private const val CLASS_NAME = "com.hiennv.flutter_callkit_incoming.CallkitIncomingActivity"
 
         fun getIntent(context: Context, data: Bundle) =
             Intent(CallkitConstants.ACTION_CALL_INCOMING).apply {
-                action = "${context.packageName}.${CallkitConstants.ACTION_CALL_INCOMING}"
+                val packageName = context.packageName
+
+                setClassName(packageName, CLASS_NAME)
+                action = "$packageName.${CallkitConstants.ACTION_CALL_INCOMING}"
                 putExtra(CallkitConstants.EXTRA_CALLKIT_INCOMING_DATA, data)
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                `package` = packageName
             }
 
-        fun getIntentEnded(context: Context, isAccepted: Boolean): Intent {
-            val intent = Intent("${context.packageName}.${ACTION_ENDED_CALL_INCOMING}")
-            intent.putExtra("ACCEPTED", isAccepted)
-            return intent
-        }
+        fun getIntentEnded(context: Context, isAccepted: Boolean) =
+            Intent("${context.packageName}.${CallkitConstants.ACTION_ENDED_CALL_INCOMING}").apply {
+                putExtra("ACCEPTED", isAccepted)
+            }
     }
 
     inner class EndedCallkitIncomingBroadcastReceiver : BroadcastReceiver() {
@@ -66,7 +65,7 @@ class CallkitIncomingActivity : Activity() {
         }
     }
 
-    private var endedCallkitIncomingBroadcastReceiver = EndedCallkitIncomingBroadcastReceiver()
+    private val endedCallkitIncomingBroadcastReceiver = EndedCallkitIncomingBroadcastReceiver()
 
     private lateinit var ivBackground: ImageView
     private lateinit var llBackgroundAnimation: RippleRelativeLayout
@@ -86,11 +85,26 @@ class CallkitIncomingActivity : Activity() {
     @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(
+                endedCallkitIncomingBroadcastReceiver,
+                IntentFilter("$packageName.${CallkitConstants.ACTION_ENDED_CALL_INCOMING}"),
+                RECEIVER_EXPORTED,
+            )
+        } else {
+            registerReceiver(
+                endedCallkitIncomingBroadcastReceiver,
+                IntentFilter("$packageName.${CallkitConstants.ACTION_ENDED_CALL_INCOMING}"),
+            )
+        }
+
         requestedOrientation = if (!Utils.isTablet(this@CallkitIncomingActivity)) {
             ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         } else {
             ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             setTurnScreenOn(true)
@@ -101,26 +115,14 @@ class CallkitIncomingActivity : Activity() {
             window.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED)
             window.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD)
         }
+
         transparentStatusAndNavigation()
         setContentView(R.layout.activity_callkit_incoming)
         initView()
         incomingData(intent)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(
-                endedCallkitIncomingBroadcastReceiver,
-                IntentFilter("${packageName}.${ACTION_ENDED_CALL_INCOMING}"),
-                Context.RECEIVER_EXPORTED,
-            )
-        } else {
-            registerReceiver(
-                endedCallkitIncomingBroadcastReceiver,
-                IntentFilter("${packageName}.${ACTION_ENDED_CALL_INCOMING}")
-            )
-        }
     }
 
     private fun wakeLockRequest(duration: Long) {
-
         val pm = applicationContext.getSystemService(POWER_SERVICE) as PowerManager
         val wakeLock = pm.newWakeLock(
             PowerManager.SCREEN_BRIGHT_WAKE_LOCK or PowerManager.FULL_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP,
@@ -130,25 +132,14 @@ class CallkitIncomingActivity : Activity() {
     }
 
     private fun transparentStatusAndNavigation() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            setWindowFlag(
-                WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS
-                        or WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION, true
-            )
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            setWindowFlag(
-                (WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS
-                        or WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION), false
-            )
-            window.statusBarColor = Color.TRANSPARENT
-            window.navigationBarColor = Color.TRANSPARENT
-        }
+        window.decorView.systemUiVisibility =
+            (View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)
+        setWindowFlag(
+            (WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS or WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION),
+            false
+        )
+        window.statusBarColor = Color.TRANSPARENT
+        window.navigationBarColor = Color.TRANSPARENT
     }
 
     private fun setWindowFlag(bits: Int, on: Boolean) {
@@ -165,7 +156,10 @@ class CallkitIncomingActivity : Activity() {
 
     private fun incomingData(intent: Intent) {
         val data = intent.extras?.getBundle(CallkitConstants.EXTRA_CALLKIT_INCOMING_DATA)
-        if (data == null) finish()
+
+        if (data == null) {
+            finish()
+        }
 
         val isShowFullLockedScreen =
             data?.getBoolean(CallkitConstants.EXTRA_CALLKIT_IS_SHOW_FULL_LOCKED_SCREEN, true)
@@ -183,35 +177,39 @@ class CallkitIncomingActivity : Activity() {
         tvNumber.text = data?.getString(CallkitConstants.EXTRA_CALLKIT_HANDLE, "")
         tvNumber.visibility = if (isShowCallID == true) View.VISIBLE else View.INVISIBLE
 
-        try {
-            tvNameCaller.setTextColor(Color.parseColor(textColor))
-            tvNumber.setTextColor(Color.parseColor(textColor))
-        } catch (error: Exception) {
+        // apply text color to text elements
+        textColor?.toColorInt()?.let {
+            try {
+                tvNameCaller.setTextColor(it)
+                tvNumber.setTextColor(it)
+            } catch (e: Exception) {
+                // noop
+            }
         }
 
         val isShowLogo = data?.getBoolean(CallkitConstants.EXTRA_CALLKIT_IS_SHOW_LOGO, false)
         ivLogo.visibility = if (isShowLogo == true) View.VISIBLE else View.INVISIBLE
-        var logoUrl = data?.getString(CallkitConstants.EXTRA_CALLKIT_LOGO_URL, "")
-        if (logoUrl != null && logoUrl.isNotEmpty()) {
-            if (!logoUrl.startsWith("http://", true) && !logoUrl.startsWith("https://", true)) {
-                logoUrl = String.format("file:///android_asset/flutter_assets/%s", logoUrl)
-            }
+        val logoUrl = data?.getString(CallkitConstants.EXTRA_CALLKIT_LOGO_URL, "")
+
+        if (!logoUrl.isNullOrEmpty()) {
+            val url = getAssetUrl(logoUrl)
             val headers =
-                data?.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
+                data.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
             getPicassoInstance(this@CallkitIncomingActivity, headers)
-                .load(logoUrl)
+                .load(url)
                 .placeholder(R.drawable.transparent)
                 .error(R.drawable.transparent)
                 .into(ivLogo)
         }
 
         val avatarUrl = data?.getString(CallkitConstants.EXTRA_CALLKIT_AVATAR, "")
-        if (avatarUrl != null && avatarUrl.isNotEmpty()) {
+        if (!avatarUrl.isNullOrEmpty()) {
+            val url = getAssetUrl(avatarUrl)
             ivAvatar.visibility = View.VISIBLE
             val headers =
                 data.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
             getPicassoInstance(this@CallkitIncomingActivity, headers)
-                .load(avatarUrl)
+                .load(url)
                 .placeholder(R.drawable.ic_default_avatar)
                 .error(R.drawable.ic_default_avatar)
                 .into(ivAvatar)
@@ -233,23 +231,30 @@ class CallkitIncomingActivity : Activity() {
         tvDecline.text =
             if (TextUtils.isEmpty(textDecline)) getString(R.string.text_decline) else textDecline
 
-        try {
-            tvAccept.setTextColor(Color.parseColor(textColor))
-            tvDecline.setTextColor(Color.parseColor(textColor))
-        } catch (error: Exception) {
+        // apply text color to text elements
+        textColor?.toColorInt()?.let {
+            try {
+                tvNameCaller.setTextColor(it)
+                tvNumber.setTextColor(it)
+            } catch (e: Exception) {
+                // noop
+            }
         }
 
-        val backgroundColor =
-            data?.getString(CallkitConstants.EXTRA_CALLKIT_BACKGROUND_COLOR, "#0955fa")
-        try {
-            ivBackground.setBackgroundColor(Color.parseColor(backgroundColor))
-        } catch (error: Exception) {
-        }
+        // set background color
+        data?.getString(CallkitConstants.EXTRA_CALLKIT_BACKGROUND_COLOR, "#0955fa")?.toColorInt()
+            ?.let {
+                try {
+                    ivBackground.setBackgroundColor(it)
+                } catch (e: Exception) {
+                    // noop
+                }
+            }
+
         var backgroundUrl = data?.getString(CallkitConstants.EXTRA_CALLKIT_BACKGROUND_URL, "")
-        if (backgroundUrl != null && backgroundUrl.isNotEmpty()) {
+        if (!backgroundUrl.isNullOrEmpty()) {
             if (!backgroundUrl.startsWith("http://", true) && !backgroundUrl.startsWith(
-                    "https://",
-                    true
+                    "https://", true
                 )
             ) {
                 backgroundUrl =
@@ -329,10 +334,8 @@ class CallkitIncomingActivity : Activity() {
     }
 
     private fun dismissKeyguard() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
-            keyguardManager.requestDismissKeyguard(this, null)
-        }
+        val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+        keyguardManager.requestDismissKeyguard(this, null)
     }
 
     private fun onDeclineClick() {
@@ -350,26 +353,29 @@ class CallkitIncomingActivity : Activity() {
     }
 
     private fun finishTask() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            finishAndRemoveTask()
+        finishAndRemoveTask()
+    }
+
+    private fun getAssetUrl(url: String): String {
+        val startsWithHttp = url.startsWith("http://", true)
+        val startsWithHttps = url.startsWith("https://", true)
+
+        return if (startsWithHttp || startsWithHttps) {
+            url
         } else {
-            finish()
+            "file:///android_asset/flutter_assets/$url"
         }
     }
 
     private fun getPicassoInstance(context: Context, headers: HashMap<String, Any?>): Picasso {
-        val client = OkHttpClient.Builder()
-            .addNetworkInterceptor { chain ->
-                val newRequestBuilder: okhttp3.Request.Builder = chain.request().newBuilder()
-                for ((key, value) in headers) {
-                    newRequestBuilder.addHeader(key, value.toString())
-                }
-                chain.proceed(newRequestBuilder.build())
+        val client = OkHttpClient.Builder().addNetworkInterceptor { chain ->
+            val newRequestBuilder: okhttp3.Request.Builder = chain.request().newBuilder()
+            for ((key, value) in headers) {
+                newRequestBuilder.addHeader(key, value.toString())
             }
-            .build()
-        return Picasso.Builder(context)
-            .downloader(OkHttp3Downloader(client))
-            .build()
+            chain.proceed(newRequestBuilder.build())
+        }.build()
+        return Picasso.Builder(context).downloader(OkHttp3Downloader(client)).build()
     }
 
     override fun onDestroy() {

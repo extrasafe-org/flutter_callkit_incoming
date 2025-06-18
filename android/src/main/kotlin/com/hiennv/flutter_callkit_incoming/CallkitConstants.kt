@@ -3,6 +3,8 @@ package com.hiennv.flutter_callkit_incoming
 object CallkitConstants {
     const val ACTION_CALL_INCOMING =
         "com.hiennv.flutter_callkit_incoming.ACTION_CALL_INCOMING"
+    const val ACTION_ENDED_CALL_INCOMING =
+        "com.hiennv.flutter_callkit_incoming.ACTION_ENDED_CALL_INCOMING"
     const val ACTION_CALL_START = "com.hiennv.flutter_callkit_incoming.ACTION_CALL_START"
     const val ACTION_CALL_ACCEPT =
         "com.hiennv.flutter_callkit_incoming.ACTION_CALL_ACCEPT"
@@ -52,6 +54,7 @@ object CallkitConstants {
     const val EXTRA_CALLKIT_CALLING_HANG_UP_SHOW = "EXTRA_CALLKIT_CALLING_HANG_UP_SHOW"
     const val EXTRA_CALLKIT_CALLING_HANG_UP_TEXT =
         "EXTRA_CALLKIT_CALLING_HANG_UP_TEXT"
+    const val EXTRA_CALLKIT_CALLING_CONTENT = "EXTRA_CALLKIT_CALLING_CONTENT"
     const val EXTRA_CALLKIT_CALLING_TAP_OPEN_TEXT =
         "EXTRA_CALLKIT_CALLING_TAP_OPEN_TEXT"
 
