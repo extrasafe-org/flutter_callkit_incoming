@@ -1,7 +1,41 @@
 ## 2.5.3
 
-- added the `canUseFullScreenIntent()` method to determine whether the device can show full screen notifications in the locked state (Android only). You can use this value to determine whether to show dialog and subsequently call `requestFullIntentPermission()` to open the settings activity.
-- renamed the `requestFullIntentPermission()` to `openFullScreenNotificationsSettings()` to better reflect what it does and changed its return type to `Future<void>` from `Future<dynamic>`.
+### Plugin changes:
+
+- breaking: bumps the minimum versions for Flutter and Dart SDKs to 3.29.0 and 3.7.0 respectively;
+- adds the `.fvmrc` config file that specifies the development Flutter version – 3.29.2;
+- updates Android project build settings:
+  - removes the deprecated `jcenter` repository and replaces it with `mavenCentral`;
+  - breaking: bumps the minimum Android SDK version from 16 to 26;
+  - bumps the compile and target Android SDK versions from 34 to 36;
+  - bumps the Java SDK version from 17 to 21;
+  - bumps the Kotlin version from 1.8.0 to 2.1.10;
+  - bumps the gradle version from 7.1.2 to 8.9.0 and AGP version from 7.4 to 8.11.1.
+- updates the Android manifest file by adding missing foreground service permission types for camera and microphone;
+- allows to specify local asset for display in the notifications (Android only);
+- fixes an issue where plugin would not use the default system ringtone for calls (Android only);
+- updates call vibration pattern (Android only);
+- refactors the Android project codebase:
+  - adds missing permission checks to `OngoingNotificationService`;
+  - removes no longer necessary Android version checks;
+  - reformats the code;
+- breaking: comments out code related to configuring the iOS audio session. It is now the responsibility of the caller to configure audio session if any changes are necessary, which can be done by either:
+  - creating an `AppDelegate` extension that conforms to the `CallkitIncomingAppDelegate` protocol and providing the `didActivateAudioSession` and `didDeactivateAudioSession` methods (iOS native), or
+  - listening for `actionCallToggleAudioSession` events and doing configuration in event callbacks.
+- adds the `NotificationParams::content` field that can be used to set text content that's displayed in the ongoing call notification (Android only);
+- adds the `FlutterCallkitIncoming::canUseFullScreenIntent` method to determine whether the device can show full screen notifications in the locked state (Android only). This value can be used to determine whether to show a dialog and subsequently call `FlutterCallkitIncoming::requestFullIntentPermission` to open the settings activity.
+- renames the `FlutterCallkitIncoming::requestFullIntentPermission` to `FlutterCallkitIncoming::openFullScreenNotificationsSettings` to better reflect its purpose and changes method return type to `Future<void>` from `Future<dynamic>`.
+
+### Example project changes:
+
+- updates Android project build settings:
+  - breaking: bumps the minimum Android SDK version from 19 to 26;
+  - bumps the compile and target Android SDK versions from 34 to 36;
+  - sets the Java SDK version from 21;
+  - sets the Kotlin version from 2.1.10;
+  - bumps the gradle version from 7.1.2 to 8.9.0 and AGP version from 7.4 to 8.11.1;
+  - migrates the now deprecated imperative application of Flutter's Gradle plugins;
+  - removes the deprecated `package` value in the `manifest` root tag from manifests.
 
 ## 2.5.2
 * Add notification calling for Android `callingNotification`, thank @ebsangam https://github.com/hiennguyen92/flutter_callkit_incoming/pull/662
