@@ -43,6 +43,16 @@ class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
                 `package` = packageName
             }
 
+        fun getIntentUpdate(context: Context, data: Bundle?) =
+            Intent().apply {
+                val packageName = context.packageName
+
+                setClassName(packageName, CLASS_NAME)
+                action = "$packageName.${CallkitConstants.ACTION_CALL_UPDATE}"
+                putExtra(CallkitConstants.EXTRA_CALLKIT_INCOMING_DATA, data)
+                `package` = packageName
+            }
+
         fun getIntentAccept(context: Context, data: Bundle?) =
             Intent().apply {
                 val packageName = context.packageName
@@ -190,6 +200,26 @@ class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
                     context.stopService(Intent(context, CallkitSoundPlayerService::class.java))
                     callkitNotificationManager.clearIncomingNotification(data, false)
                     removeCall(context, Data.fromBundle(data))
+                } catch (error: Exception) {
+                    Log.e(TAG, null, error)
+                }
+            }
+
+            "$packageName.${CallkitConstants.ACTION_CALL_UPDATE}" -> {
+                try {
+                    sendEventFlutter(CallkitConstants.ACTION_CALL_UPDATE, data)
+                    // update the call
+                    updateCall(context, Data.fromBundle(data))
+
+                    // then restart the service – it's wonky but will work for now
+                    // TODO: (@safebee) update the notification in place instead of stopping and restarting the service
+                    context.stopService(Intent(context, OngoingNotificationService::class.java))
+                    if (data.getBoolean(CallkitConstants.EXTRA_CALLKIT_CALLING_SHOW, true)) {
+                        val onGoingNotificationIntent =
+                            Intent(context, OngoingNotificationService::class.java);
+                        onGoingNotificationIntent.putExtras(data)
+                        context.startService(onGoingNotificationIntent)
+                    }
                 } catch (error: Exception) {
                     Log.e(TAG, null, error)
                 }

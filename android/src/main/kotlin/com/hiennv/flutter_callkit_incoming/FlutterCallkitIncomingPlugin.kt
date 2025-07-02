@@ -187,6 +187,18 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
                     result.success("OK")
                 }
 
+                "updateCall" -> {
+                    val data = Data(call.arguments() ?: HashMap())
+                    context?.sendBroadcast(
+                        CallkitIncomingBroadcastReceiver.getIntentUpdate(
+                            requireNotNull(context),
+                            data.toBundle()
+                        )
+                    )
+
+                    result.success("OK")
+                }
+
                 "muteCall" -> {
                     val map = buildMap {
                         val args = call.arguments
