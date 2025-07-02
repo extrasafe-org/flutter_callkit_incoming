@@ -55,7 +55,22 @@ class CallManager: NSObject {
         callTransaction.addAction(holdAction)
         requestTransaction(callTransaction, action: "holdCall")
     }
-    
+
+    func updateCall(_ callUUID: UUID, with data: Data) {
+        guard let call = callWithUUID(uuid: callUUID) else { return }
+        
+        let callUpdate = CXCallUpdate()
+        callUpdate.supportsDTMF = data.supportsDTMF
+        callUpdate.supportsHolding = data.supportsHolding
+        callUpdate.supportsGrouping = data.supportsGrouping
+        callUpdate.supportsUngrouping = data.supportsUngrouping
+        callUpdate.hasVideo = data.type > 0 ? true : false
+        callUpdate.localizedCallerName = data.nameCaller
+        self.sharedProvider?.reportCall(with: callUUID, updated: callUpdate)
+
+        call.data = data
+    }
+
     func endCall(call: Call) {
         let endCallAction = CXEndCallAction(call: call.uuid)
         let callTransaction = CXTransaction()
