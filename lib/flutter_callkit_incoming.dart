@@ -23,6 +23,7 @@ class FlutterCallkitIncoming {
   /// Event.ACTION_CALL_START - Started an outgoing call
   /// Event.ACTION_CALL_ACCEPT - Accepted an incoming call
   /// Event.ACTION_CALL_DECLINE - Declined an incoming call
+  /// Event.ACTION_CALL_UPDATE - Active call was updated
   /// Event.ACTION_CALL_ENDED - Ended an incoming/outgoing call
   /// Event.ACTION_CALL_TIMEOUT - Missed an incoming call
   /// Event.ACTION_CALL_CALLBACK - only Android (click action `Call back` from missed call notification)
@@ -58,6 +59,13 @@ class FlutterCallkitIncoming {
   /// On Android, Nothing(only callback event listener).
   static Future startCall(CallKitParams params) async {
     await _channel.invokeMethod("startCall", params.toJson());
+  }
+
+  /// Sends a request to update an ongoing call with [params].
+  ///
+  /// This method will only work for updating an already ongoing call.
+  static Future<void> updateCall(CallKitParams params) async {
+    await _channel.invokeMethod("updateCall", params.toJson());
   }
 
   /// Muting an Ongoing call.
