@@ -158,6 +158,7 @@ public class Call: NSObject {
         nameCaller: String,
         handle: String,
         type: Int,
+        duration: Int = 30000,
         supportsDTMF: Bool = true,
         supportsHolding: Bool = true,
         supportsGrouping: Bool = true,
@@ -171,7 +172,7 @@ public class Call: NSObject {
         self.avatar = ""
         self.type = type
         self.normalHandle = 0
-        self.duration = 30000
+        self.duration = duration
         self.extra = extra
         self.iconName = "CallKitLogo"
         self.handleType = ""
