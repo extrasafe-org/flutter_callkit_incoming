@@ -141,6 +141,16 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
             self.muteCall(callId, isMuted: isMuted)
             result("OK")
             break
+        case "updateCall":
+            guard let args = call.arguments else {
+                result("OK")
+                return
+            }
+            if let getArgs = args as? [String: Any] {
+                data = Data(args: getArgs)
+                updateCall(with: self.data!, fromPushKit: false)
+            }
+            result("OK")
         case "isMuted":
             guard let args = call.arguments as? [String: Any] ,
                   let callId = args["id"] as? String else{
@@ -284,7 +294,30 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
         initCallkitProvider(data)
         self.callManager.startCall(data)
     }
-    
+
+    @objc public func updateCall(
+        with data: Data,
+        fromPushKit updateData: Bool
+    ) {
+        guard let callId = UUID(uuidString: data.uuid)
+        else {
+            return
+        }
+
+        if updateData {
+            self.data = data
+        }
+
+        sendEvent(
+            SwiftFlutterCallkitIncomingPlugin.ACTION_CALL_UPDATE,
+            data.toJSON()
+        )
+        callManager.updateCall(callId, with: data)
+        if answerCall != nil {
+            answerCall = callManager.callWithUUID(uuid: callId)
+        }
+    }
+
     @objc public func muteCall(_ callId: String, isMuted: Bool) {
         guard let callId = UUID(uuidString: callId),
               let call = self.callManager.callWithUUID(uuid: callId) else {
