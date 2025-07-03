@@ -21,12 +21,26 @@ fun addCall(context: Context?, data: Data, isAccepted: Boolean = false) {
     val arrayData: ArrayList<Data> = Utils.getGsonInstance()
         .readValue(json, object : TypeReference<ArrayList<Data>>() {})
     val currentData = arrayData.find { it == data }
-    if(currentData != null) {
+    if (currentData != null) {
         currentData.isAccepted = isAccepted
-    }else {
+    } else {
         arrayData.add(data)
     }
     putString(context, "ACTIVE_CALLS", Utils.getGsonInstance().writeValueAsString(arrayData))
+}
+
+fun updateCall(context: Context?, data: Data) {
+    val json = getString(context, "ACTIVE_CALLS", "[]")
+    val array =
+        Utils.getGsonInstance().readValue(json, object : TypeReference<ArrayList<Data>>() {})
+
+    // if the element is in the array, update it
+    val index = array.indexOfLast { it.id == data.id }
+    if (index != -1) {
+        array[index] = data
+    }
+
+    putString(context, "ACTIVE_CALLS", Utils.getGsonInstance().writeValueAsString(array))
 }
 
 fun removeCall(context: Context?, data: Data) {
@@ -51,7 +65,8 @@ fun getDataActiveCalls(context: Context?): ArrayList<Data> {
 
 fun getDataActiveCallsForFlutter(context: Context?): ArrayList<Map<String, Any?>> {
     val json = getString(context, "ACTIVE_CALLS", "[]")
-    return Utils.getGsonInstance().readValue(json, object : TypeReference<ArrayList<Map<String, Any?>>>() {})
+    return Utils.getGsonInstance()
+        .readValue(json, object : TypeReference<ArrayList<Map<String, Any?>>>() {})
 }
 
 fun putString(context: Context?, key: String, value: String?) {

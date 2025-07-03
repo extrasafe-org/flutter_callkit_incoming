@@ -15,7 +15,8 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
     static let ACTION_CALL_ENDED = "com.hiennv.flutter_callkit_incoming.ACTION_CALL_ENDED"
     static let ACTION_CALL_TIMEOUT = "com.hiennv.flutter_callkit_incoming.ACTION_CALL_TIMEOUT"
     static let ACTION_CALL_CUSTOM = "com.hiennv.flutter_callkit_incoming.ACTION_CALL_CUSTOM"
-    
+    static let ACTION_CALL_UPDATE = "com.hiennv.flutter_callkit_incoming.ACTION_CALL_UPDATE"
+
     static let ACTION_CALL_TOGGLE_HOLD = "com.hiennv.flutter_callkit_incoming.ACTION_CALL_TOGGLE_HOLD"
     static let ACTION_CALL_TOGGLE_MUTE = "com.hiennv.flutter_callkit_incoming.ACTION_CALL_TOGGLE_MUTE"
     static let ACTION_CALL_TOGGLE_DMTF = "com.hiennv.flutter_callkit_incoming.ACTION_CALL_TOGGLE_DMTF"
@@ -140,6 +141,16 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
             self.muteCall(callId, isMuted: isMuted)
             result("OK")
             break
+        case "updateCall":
+            guard let args = call.arguments else {
+                result("OK")
+                return
+            }
+            if let getArgs = args as? [String: Any] {
+                data = Data(args: getArgs)
+                updateCall(with: self.data!, fromPushKit: false)
+            }
+            result("OK")
         case "isMuted":
             guard let args = call.arguments as? [String: Any] ,
                   let callId = args["id"] as? String else{
@@ -283,7 +294,30 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
         initCallkitProvider(data)
         self.callManager.startCall(data)
     }
-    
+
+    @objc public func updateCall(
+        with data: Data,
+        fromPushKit updateData: Bool
+    ) {
+        guard let callId = UUID(uuidString: data.uuid)
+        else {
+            return
+        }
+
+        if updateData {
+            self.data = data
+        }
+
+        sendEvent(
+            SwiftFlutterCallkitIncomingPlugin.ACTION_CALL_UPDATE,
+            data.toJSON()
+        )
+        callManager.updateCall(callId, with: data)
+        if answerCall != nil {
+            answerCall = callManager.callWithUUID(uuid: callId)
+        }
+    }
+
     @objc public func muteCall(_ callId: String, isMuted: Bool) {
         guard let callId = UUID(uuidString: callId),
               let call = self.callManager.callWithUUID(uuid: callId) else {
@@ -322,47 +356,34 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
         )
         self.callManager.endCall(call: call!)
     }
-    
+
     @objc public func connectedCall(_ data: Data) {
         var call: Call? = nil
-        if(self.isFromPushKit){
+        if isFromPushKit {
             call = Call(uuid: UUID(uuidString: self.data!.uuid)!, data: data)
-            self.isFromPushKit = false
-        }else {
+            isFromPushKit = false
+        } else {
             call = Call(uuid: UUID(uuidString: data.uuid)!, data: data)
         }
-        self.callManager.connectedCall(call: call!)
+        callManager.connectedCall(call: call!)
     }
     
     @objc public func activeCalls() -> [[String: Any]] {
-        return self.callManager.activeCalls()
+        return callManager.activeCalls()
     }
     
     @objc public func endAllCalls() {
-        self.isFromPushKit = false
-        self.callManager.endCallAlls()
+        isFromPushKit = false
+        callManager.endCallAlls()
     }
     
-    public func saveEndCall(_ uuid: String, _ reason: Int) {
-        switch reason {
-        case 1:
-            self.sharedProvider?.reportCall(with: UUID(uuidString: uuid)!, endedAt: Date(), reason: CXCallEndedReason.failed)
-            break
-        case 2, 6:
-            self.sharedProvider?.reportCall(with: UUID(uuidString: uuid)!, endedAt: Date(), reason: CXCallEndedReason.remoteEnded)
-            break
-        case 3:
-            self.sharedProvider?.reportCall(with: UUID(uuidString: uuid)!, endedAt: Date(), reason: CXCallEndedReason.unanswered)
-            break
-        case 4:
-            self.sharedProvider?.reportCall(with: UUID(uuidString: uuid)!, endedAt: Date(), reason: CXCallEndedReason.answeredElsewhere)
-            break
-        case 5:
-            self.sharedProvider?.reportCall(with: UUID(uuidString: uuid)!, endedAt: Date(), reason: CXCallEndedReason.declinedElsewhere)
-            break
-        default:
-            break
+    public func saveEndCall(_ callUUID: String, _ reason: CXCallEndedReason) {
+        guard let uuid = UUID(uuidString: callUUID) else {
+            print("Error while reporting call ended: invalid UUID")
+            return
         }
+
+        sharedProvider?.reportCall(with: uuid, endedAt: Date(), reason: reason)
     }
     
     
@@ -378,12 +399,12 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
     
     
     func callEndTimeout(_ data: Data) {
-        self.saveEndCall(data.uuid, 3)
+        saveEndCall(data.uuid, CXCallEndedReason.unanswered)
         guard let call = self.callManager.callWithUUID(uuid: UUID(uuidString: data.uuid)!) else {
             return
         }
         sendEvent(SwiftFlutterCallkitIncomingPlugin.ACTION_CALL_TIMEOUT, data.toJSON())
-        if let appDelegate = UIApplication.shared.delegate as? CallkitIncomingAppDelegate {
+if let appDelegate = UIApplication.shared.delegate as? CallkitIncomingAppDelegate {
             appDelegate.onTimeOut(call)
         }
     }
@@ -591,8 +612,7 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
             }
         }
     }
-    
-    
+
     public func provider(_ provider: CXProvider, perform action: CXSetHeldCallAction) {
         guard let call = self.callManager.callWithUUID(uuid: action.callUUID) else {
             action.fail()
@@ -698,7 +718,6 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
     private func sendHoldEvent(_ id: String, _ isOnHold: Bool) {
         self.sendEvent(SwiftFlutterCallkitIncomingPlugin.ACTION_CALL_TOGGLE_HOLD, [ "id": id, "isOnHold": isOnHold ])
     }
-    
 }
 
 class EventCallbackHandler: NSObject, FlutterStreamHandler {
